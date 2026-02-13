@@ -1,0 +1,41 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Node / web
+web/node_modules/
+web/dist/
+web/.vite/
+
+# Env & secrets
+.env
+*.env
+web/.env
+web/.env.*
+
+# Runtime / logs
+logs/
+*.log
+server.pid
+
+# Local databases and transient DB files
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+
+# Local backups/data snapshots
+backups/
+*.backup.json
+
+# Personal/local app data
+coach-data.json
+coach-memory.json
+profile.json
+tasks-data.json
+
+# Noise / accidental files
+nul
+c?proyectosproductivity-coachdocsREADME.md
+c?proyectosproductivity-coachdocsSTATUS.txt
+
+c*proyectosproductivity-coachdocs*

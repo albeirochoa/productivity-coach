@@ -1,0 +1,70 @@
+{
+    "id": "articulo-para-el-blog",
+    "title": "Articulo para el blog",
+    "description": "Articulo para el blog sobre pujas de google ads ",
+    "category": "trabajo",
+    "status": "in_progress",
+    "created_date": "2026-02-10T03:44:04.161Z",
+    "last_updated": "2026-02-10T03:44:04.161Z",
+    "target_completion": null,
+    "strategy": "batching",
+    "milestones": [
+        {
+            "id": "milestone-1",
+            "title": "Investigación de palabras clave",
+            "description": "Investiga y selecciona 5-10 palabras clave relevantes sobre pujas de Google Ads, utilizando herramientas como Google Keyword Planner. Entregable: lista de palabras clave en un documento.",
+            "completed": false,
+            "completed_date": null,
+            "tasks": []
+        },
+        {
+            "id": "milestone-2",
+            "title": "Estructura del artículo",
+            "description": "Crea un esquema detallado del artículo, incluyendo introducción, secciones principales y conclusión. Entregable: esquema en un documento.",
+            "completed": false,
+            "completed_date": null,
+            "tasks": []
+        },
+        {
+            "id": "milestone-3",
+            "title": "Redacción de la introducción",
+            "description": "Escribe la introducción del artículo, capturando la atención del lector y presentando el tema. Entregable: texto de la introducción listo para revisión.",
+            "completed": false,
+            "completed_date": null,
+            "tasks": []
+        },
+        {
+            "id": "milestone-4",
+            "title": "Desarrollo de la sección sobre tipos de pujas",
+            "description": "Redacta la sección que explica los diferentes tipos de pujas en Google Ads. Entregable: texto de esta sección completo.",
+            "completed": false,
+            "completed_date": null,
+            "tasks": []
+        },
+        {
+            "id": "milestone-5",
+            "title": "Desarrollo de la sección sobre estrategias de pujas",
+            "description": "Redacta la sección que aborda las estrategias de pujas más efectivas. Entregable: texto de esta sección completo.",
+            "completed": false,
+            "completed_date": null,
+            "tasks": []
+        },
+        {
+            "id": "milestone-6",
+            "title": "Conclusión y recomendaciones",
+            "description": "Escribe la conclusión y ofrece recomendaciones prácticas para los lectores sobre pujas en Google Ads. Entregable: texto de la conclusión listo para revisión.",
+            "completed": false,
+            "completed_date": null,
+            "tasks": []
+        },
+        {
+            "id": "milestone-7",
+            "title": "Revisión y edición final",
+            "description": "Revisa y edita todo el artículo, asegurando coherencia y corrección gramatical. Entregable: artículo completo listo para publicación.",
+            "completed": false,
+            "completed_date": null,
+            "tasks": []
+        }
+    ],
+    "notes": ""
+}

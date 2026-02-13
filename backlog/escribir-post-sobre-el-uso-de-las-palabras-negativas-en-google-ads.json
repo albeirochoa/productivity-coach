@@ -1,0 +1,119 @@
+{
+    "id": "escribir-post-sobre-el-uso-de-las-palabras-negativas-en-google-ads",
+    "title": "escribir post sobre el uso de las palabras negativas en google ads",
+    "description": "escribir post de 1000 palabras sobre el uso de las palabras negativas en google ads",
+    "category": "trabajo",
+    "status": "in_progress",
+    "created_date": "2026-02-10T02:50:35.559Z",
+    "last_updated": "2026-02-10T02:50:35.559Z",
+    "target_completion": null,
+    "strategy": "batching",
+    "milestones": [
+        {
+            "id": "milestone-1",
+            "title": "Investigación de palabras negativas",
+            "description": "Investigar y recopilar información sobre qué son las palabras negativas en Google Ads y su importancia en las campañas publicitarias. El resultado será un documento con al menos 5 ejemplos de palabras negativas y su impacto.",
+            "completed": false,
+            "completed_date": null,
+            "tasks": [
+                {
+                    "id": "task-1-1",
+                    "description": "Investigación de palabras negativas",
+                    "time_estimate": 45,
+                    "completed": false
+                }
+            ]
+        },
+        {
+            "id": "milestone-2",
+            "title": "Análisis de casos de uso",
+            "description": "Revisar al menos 3 estudios de caso o artículos sobre el uso de palabras negativas en Google Ads. Resumir los hallazgos y lecciones aprendidas en un documento de una página.",
+            "completed": false,
+            "completed_date": null,
+            "tasks": [
+                {
+                    "id": "task-2-1",
+                    "description": "Análisis de casos de uso",
+                    "time_estimate": 45,
+                    "completed": false
+                }
+            ]
+        },
+        {
+            "id": "milestone-3",
+            "title": "Estructura del post",
+            "description": "Crear un esquema detallado del post, incluyendo los principales encabezados y subtítulos. El entregable será un documento que contenga la estructura con al menos 5 secciones definidas.",
+            "completed": false,
+            "completed_date": null,
+            "tasks": [
+                {
+                    "id": "task-3-1",
+                    "description": "Estructura del post",
+                    "time_estimate": 30,
+                    "completed": false
+                }
+            ]
+        },
+        {
+            "id": "milestone-4",
+            "title": "Redacción del primer borrador",
+            "description": "Escribir el primer borrador del post, cubriendo las secciones de introducción y definición de palabras negativas en Google Ads. El entregable será un documento de al menos 500 palabras.",
+            "completed": false,
+            "completed_date": null,
+            "tasks": [
+                {
+                    "id": "task-4-1",
+                    "description": "Redacción del primer borrador",
+                    "time_estimate": 60,
+                    "completed": false
+                }
+            ]
+        },
+        {
+            "id": "milestone-5",
+            "title": "Revisión del borrador",
+            "description": "Revisar el primer borrador, haciendo correcciones y ajustes en la redacción. El resultado será una versión revisada del post que incluya comentarios sobre áreas a mejorar.",
+            "completed": false,
+            "completed_date": null,
+            "tasks": [
+                {
+                    "id": "task-5-1",
+                    "description": "Revisión del borrador",
+                    "time_estimate": 45,
+                    "completed": false
+                }
+            ]
+        },
+        {
+            "id": "milestone-6",
+            "title": "Completar el contenido",
+            "description": "Escribir las secciones restantes del post, incluyendo ejemplos y mejores prácticas sobre el uso de palabras negativas. El entregable será un documento completo de 1000 palabras.",
+            "completed": false,
+            "completed_date": null,
+            "tasks": [
+                {
+                    "id": "task-6-1",
+                    "description": "Completar el contenido",
+                    "time_estimate": 60,
+                    "completed": false
+                }
+            ]
+        },
+        {
+            "id": "milestone-7",
+            "title": "Edición final y publicación",
+            "description": "Realizar una última edición del post, asegurando la claridad y la calidad del contenido. Publicar el post en la plataforma correspondiente. El entregable será el post publicado en línea.",
+            "completed": false,
+            "completed_date": null,
+            "tasks": [
+                {
+                    "id": "task-7-1",
+                    "description": "Edición final y publicación",
+                    "time_estimate": 45,
+                    "completed": false
+                }
+            ]
+        }
+    ],
+    "notes": ""
+}

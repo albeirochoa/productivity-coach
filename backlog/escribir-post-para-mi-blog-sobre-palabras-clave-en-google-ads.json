@@ -1,0 +1,149 @@
+{
+    "id": "escribir-post-para-mi-blog-sobre-palabras-clave-en-google-ads",
+    "title": "escribir post para mi blog sobre palabras clave en google ads",
+    "description": "escribir post blog sobre de mil palabras",
+    "category": "trabajo",
+    "status": "in_progress",
+    "created_date": "2026-02-09T23:19:48.602Z",
+    "last_updated": "2026-02-09T23:19:48.602Z",
+    "target_completion": null,
+    "strategy": "batching",
+    "milestones": [
+        {
+            "id": "milestone-1",
+            "title": "Investigación de palabras clave",
+            "description": "Investigar y seleccionar al menos 10 palabras clave relevantes para Google Ads relacionadas con el tema del post. Crear un documento con estas palabras clave.",
+            "completed": false,
+            "completed_date": null,
+            "tasks": [
+                {
+                    "id": "task-1-1",
+                    "description": "Investigación de palabras clave",
+                    "time_estimate": 45,
+                    "completed": false
+                }
+            ]
+        },
+        {
+            "id": "milestone-2",
+            "title": "Creación del esquema del post",
+            "description": "Desarrollar un esquema detallado del post, incluyendo títulos y subtítulos, así como los puntos principales a cubrir. Entregar el esquema en un documento.",
+            "completed": false,
+            "completed_date": null,
+            "tasks": [
+                {
+                    "id": "task-2-1",
+                    "description": "Creación del esquema del post",
+                    "time_estimate": 45,
+                    "completed": false
+                }
+            ]
+        },
+        {
+            "id": "milestone-3",
+            "title": "Escritura de la introducción",
+            "description": "Redactar la introducción del post, asegurando que sea atractiva y que incluya al menos una de las palabras clave seleccionadas. Entregar la introducción en el documento del post.",
+            "completed": false,
+            "completed_date": null,
+            "tasks": [
+                {
+                    "id": "task-3-1",
+                    "description": "Escritura de la introducción",
+                    "time_estimate": 45,
+                    "completed": false
+                }
+            ]
+        },
+        {
+            "id": "milestone-4",
+            "title": "Desarrollo de la sección 1",
+            "description": "Escribir la primera sección del post, que debe contener información relevante y al menos 300 palabras. Incluir al menos dos palabras clave. Entregar esta sección en el documento.",
+            "completed": false,
+            "completed_date": null,
+            "tasks": [
+                {
+                    "id": "task-4-1",
+                    "description": "Desarrollo de la sección 1",
+                    "time_estimate": 45,
+                    "completed": false
+                }
+            ]
+        },
+        {
+            "id": "milestone-5",
+            "title": "Desarrollo de la sección 2",
+            "description": "Escribir la segunda sección del post, con otro conjunto de 300 palabras de contenido útil que incluya al menos dos palabras clave. Entregar esta sección en el documento.",
+            "completed": false,
+            "completed_date": null,
+            "tasks": [
+                {
+                    "id": "task-5-1",
+                    "description": "Desarrollo de la sección 2",
+                    "time_estimate": 45,
+                    "completed": false
+                }
+            ]
+        },
+        {
+            "id": "milestone-6",
+            "title": "Desarrollo de la sección 3 y conclusión",
+            "description": "Escribir la tercera sección y la conclusión del post, asegurando que se sumen otras 300 palabras y se cierren los puntos discutidos. Entregar ambas partes en el documento.",
+            "completed": false,
+            "completed_date": null,
+            "tasks": [
+                {
+                    "id": "task-6-1",
+                    "description": "Desarrollo de la sección 3 y conclusión",
+                    "time_estimate": 45,
+                    "completed": false
+                }
+            ]
+        },
+        {
+            "id": "milestone-7",
+            "title": "Buscar imagenes",
+            "description": "Editar las imagenes form web",
+            "completed": false,
+            "completed_date": null,
+            "tasks": [
+                {
+                    "id": "task-7-1",
+                    "description": "Buscar imagenes",
+                    "time_estimate": 45,
+                    "completed": false
+                }
+            ]
+        },
+        {
+            "id": "milestone-8",
+            "title": "Revisión y edición final",
+            "description": "Revisar todo el post, hacer correcciones gramaticales y de estilo, y asegurarse de que todas las palabras clave estén adecuadamente integradas. Entregar la versión final lista para publicar.",
+            "completed": false,
+            "completed_date": null,
+            "tasks": [
+                {
+                    "id": "task-8-1",
+                    "description": "Revisión y edición final",
+                    "time_estimate": 45,
+                    "completed": false
+                }
+            ]
+        },
+        {
+            "id": "milestone-9",
+            "title": "Publicar el Post ",
+            "description": "Programar el post para el miércoles ",
+            "completed": false,
+            "completed_date": null,
+            "tasks": [
+                {
+                    "id": "task-9-1",
+                    "description": "Publicar el Post ",
+                    "time_estimate": 45,
+                    "completed": false
+                }
+            ]
+        }
+    ],
+    "notes": ""
+}
