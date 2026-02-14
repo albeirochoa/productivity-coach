@@ -3,63 +3,12 @@ import { motion } from 'framer-motion';
 import {
   CheckCircle, Plus, X, ChevronRight, Hash, Clock, Calendar, Archive, Trash2, Edit2
 } from 'lucide-react';
-import { api } from '../../utils/api';
+import AddMilestoneForm from '../projects/AddMilestoneForm';
+import MilestoneList from '../projects/MilestoneList';
+import SectionList from '../projects/SectionList';
+import useProjectCardActions from '../../hooks/useProjectCardActions';
 import EditProjectModal from './EditProjectModal';
 import EditMilestoneModal from './EditMilestoneModal';
-
-// Formulario inline para agregar tarea
-const AddMilestoneForm = ({ onAdd, onCancel }) => {
-  const [title, setTitle] = useState('');
-  const [timeEstimate, setTimeEstimate] = useState(45);
-
-  const handleSubmit = () => {
-    if (!title.trim()) return;
-    onAdd({ title: title.trim(), timeEstimate });
-    setTitle('');
-    setTimeEstimate(45);
-  };
-
-  return (
-    <div className="flex gap-2 items-center px-3 py-2 bg-white/5 rounded-lg">
-      <div className="w-4 h-4 rounded-full border-2 border-purple-500/50 shrink-0" />
-      <input
-        type="text"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="Nueva tarea..."
-        className="flex-1 bg-transparent border-none text-sm text-white focus:outline-none"
-        autoFocus
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') handleSubmit();
-          if (e.key === 'Escape') onCancel();
-        }}
-      />
-      <div className="flex items-center gap-1 bg-white/5 rounded-lg px-2">
-        <input
-          type="number"
-          value={timeEstimate}
-          onChange={(e) => setTimeEstimate(parseInt(e.target.value) || 45)}
-          className="w-10 bg-transparent text-center text-xs focus:outline-none"
-          min="5"
-          max="120"
-        />
-        <span className="text-[10px] text-white/40">min</span>
-      </div>
-      <button
-        onClick={handleSubmit}
-        className="px-3 py-1 bg-purple-500 hover:bg-purple-600 rounded text-xs font-medium transition-colors"
-      >
-        Agregar
-      </button>
-      <button
-        onClick={onCancel}
-        className="p-1 hover:bg-white/10 rounded transition-colors"
-      >
-        <X size={14} />
-      </button>
-    </div>
-  );
-};
 
 const ProjectCard = ({ project, depth = 0, onUnparent, onRefresh }) => {
   const completedMilestones = project.milestones?.filter(m => m.completed).length || 0;
@@ -73,6 +22,21 @@ const ProjectCard = ({ project, depth = 0, onUnparent, onRefresh }) => {
   const [addingToSection, setAddingToSection] = useState(null); // sectionId o null
   const [editingProject, setEditingProject] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState(null);
+  const {
+    addMilestone,
+    addSection,
+    deleteSection,
+    toggleMilestone,
+    commitMilestoneToWeek,
+    archiveProject,
+    deleteProject,
+    saveProject,
+    saveMilestone,
+  } = useProjectCardActions({
+    projectId: project.id,
+    projectTitle: project.title,
+    onRefresh,
+  });
 
   const sections = project.sections || [];
   const milestonesWithoutSection = project.milestones?.filter(m => !m.sectionId) || [];
@@ -83,14 +47,9 @@ const ProjectCard = ({ project, depth = 0, onUnparent, onRefresh }) => {
 
   const handleAddMilestone = async ({ title, timeEstimate }, sectionId = null) => {
     try {
-      await api.addMilestone(project.id, {
-        title,
-        timeEstimate,
-        sectionId,
-      });
+      await addMilestone({ title, timeEstimate }, sectionId);
       setShowAddMilestone(false);
       setAddingToSection(null);
-      onRefresh();
     } catch (error) {
       alert('Error al agregar tarea');
     }
@@ -99,10 +58,9 @@ const ProjectCard = ({ project, depth = 0, onUnparent, onRefresh }) => {
   const handleAddSection = async () => {
     if (!newSectionName.trim()) return;
     try {
-      await api.addSection(project.id, { name: newSectionName });
+      await addSection(newSectionName);
       setNewSectionName('');
       setShowSectionForm(false);
-      onRefresh();
     } catch (error) {
       alert('Error al crear seccion');
     }
@@ -111,8 +69,7 @@ const ProjectCard = ({ project, depth = 0, onUnparent, onRefresh }) => {
   const handleDeleteSection = async (sectionId) => {
     if (!confirm('Eliminar esta seccion? Los milestones quedaran sin seccion.')) return;
     try {
-      await api.deleteSection(project.id, sectionId);
-      onRefresh();
+      await deleteSection(sectionId);
     } catch (error) {
       alert('Error al eliminar seccion');
     }
@@ -120,8 +77,7 @@ const ProjectCard = ({ project, depth = 0, onUnparent, onRefresh }) => {
 
   const handleToggleMilestone = async (milestoneId, completed) => {
     try {
-      await api.toggleMilestone(project.id, milestoneId, { completed: !completed });
-      onRefresh();
+      await toggleMilestone(milestoneId, completed);
     } catch (error) {
       console.error('Error toggling milestone:', error);
     }
@@ -129,44 +85,24 @@ const ProjectCard = ({ project, depth = 0, onUnparent, onRefresh }) => {
 
   const handleCommitMilestoneToWeek = async (milestoneId) => {
     try {
-      await api.commitMilestone(project.id, milestoneId, false);
-      onRefresh();
+      await commitMilestoneToWeek(milestoneId);
     } catch (error) {
-      // Check if it's a capacity error (HTTP 409)
-      if (error.response?.status === 409) {
-        const errorData = error.response.data;
-        const message = `${errorData.message}\n\n¿Quieres comprometer de todas formas?`;
-        const force = confirm(message);
-        if (force) {
-          try {
-            await api.commitMilestone(project.id, milestoneId, true);
-            onRefresh();
-          } catch (forceError) {
-            alert('Error al comprometer milestone: ' + forceError.message);
-          }
-        }
-      } else {
-        console.error('Error committing milestone:', error);
-        alert('Error al comprometer milestone');
-      }
+      console.error('Error committing milestone:', error);
+      alert('Error al comprometer milestone');
     }
   };
 
   const handleArchiveProject = async () => {
-    if (!confirm(`¿Archivar "${project.title}"? Puedes restaurarlo después.`)) return;
     try {
-      await api.archiveProject(project.id);
-      onRefresh();
+      await archiveProject();
     } catch (error) {
       alert('Error al archivar proyecto');
     }
   };
 
   const handleDeleteProject = async () => {
-    if (!confirm(`¿ELIMINAR "${project.title}"? Esta acción NO se puede deshacer.`)) return;
     try {
-      await api.deleteProject(project.id);
-      onRefresh();
+      await deleteProject();
     } catch (error) {
       alert('Error al eliminar proyecto');
     }
@@ -174,8 +110,7 @@ const ProjectCard = ({ project, depth = 0, onUnparent, onRefresh }) => {
 
   const handleSaveProject = async (projectId, updates) => {
     try {
-      await api.updateTask(projectId, updates);
-      onRefresh();
+      await saveProject(projectId, updates);
     } catch (error) {
       alert('Error al actualizar proyecto');
     }
@@ -183,8 +118,7 @@ const ProjectCard = ({ project, depth = 0, onUnparent, onRefresh }) => {
 
   const handleSaveMilestone = async (projectId, milestoneId, updates) => {
     try {
-      await api.updateMilestone(projectId, milestoneId, updates);
-      onRefresh();
+      await saveMilestone(projectId, milestoneId, updates);
     } catch (error) {
       alert('Error al actualizar tarea');
     }
@@ -376,33 +310,19 @@ const ProjectCard = ({ project, depth = 0, onUnparent, onRefresh }) => {
 
         {/* Milestones */}
         <div className="space-y-4 mb-4">
-          {/* Tareas sin seccion */}
-          <div className="space-y-2">
-            {milestonesWithoutSection.map((milestone, mIdx) => renderMilestone(milestone, mIdx))}
-            {renderAddButton(null)}
-          </div>
+          <MilestoneList
+            milestones={milestonesWithoutSection}
+            renderMilestone={renderMilestone}
+            renderAddButton={renderAddButton}
+          />
 
-          {/* Secciones con sus tareas */}
-          {sections.map(section => (
-            <div key={section.id} className="border-l-2 border-purple-500/30 pl-4">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-semibold text-purple-300 uppercase tracking-wide flex items-center gap-2">
-                  <Hash size={12} />
-                  {section.name}
-                </h4>
-                <button
-                  onClick={() => handleDeleteSection(section.id)}
-                  className="p-1 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-all"
-                >
-                  <X size={12} />
-                </button>
-              </div>
-              <div className="space-y-2">
-                {milestonesBySection[section.id]?.map((milestone) => renderMilestone(milestone))}
-                {renderAddButton(section.id)}
-              </div>
-            </div>
-          ))}
+          <SectionList
+            sections={sections}
+            milestonesBySection={milestonesBySection}
+            renderMilestone={renderMilestone}
+            renderAddButton={renderAddButton}
+            onDeleteSection={handleDeleteSection}
+          />
 
           {/* Agregar seccion */}
           {showSectionForm ? (
@@ -487,3 +407,4 @@ const ProjectCard = ({ project, depth = 0, onUnparent, onRefresh }) => {
 };
 
 export default ProjectCard;
+
