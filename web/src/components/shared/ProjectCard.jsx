@@ -7,7 +7,6 @@ import AddMilestoneForm from '../projects/AddMilestoneForm';
 import MilestoneList from '../projects/MilestoneList';
 import SectionList from '../projects/SectionList';
 import useProjectCardActions from '../../hooks/useProjectCardActions';
-import { api } from '../../utils/api';
 import EditProjectModal from './EditProjectModal';
 import EditMilestoneModal from './EditMilestoneModal';
 
@@ -88,41 +87,22 @@ const ProjectCard = ({ project, depth = 0, onUnparent, onRefresh }) => {
     try {
       await commitMilestoneToWeek(milestoneId);
     } catch (error) {
-      // Check if it's a capacity error (HTTP 409)
-      if (error.response?.status === 409) {
-        const errorData = error.response.data;
-        const message = `${errorData.message}\n\n¿Quieres comprometer de todas formas?`;
-        const force = confirm(message);
-        if (force) {
-          try {
-            await api.commitMilestone(project.id, milestoneId, true);
-            onRefresh();
-          } catch (forceError) {
-            alert('Error al comprometer milestone: ' + forceError.message);
-          }
-        }
-      } else {
-        console.error('Error committing milestone:', error);
-        alert('Error al comprometer milestone');
-      }
+      console.error('Error committing milestone:', error);
+      alert('Error al comprometer milestone');
     }
   };
 
   const handleArchiveProject = async () => {
-    if (!confirm(`¿Archivar "${project.title}"? Puedes restaurarlo después.`)) return;
     try {
-      await api.archiveProject(project.id);
-      onRefresh();
+      await archiveProject();
     } catch (error) {
       alert('Error al archivar proyecto');
     }
   };
 
   const handleDeleteProject = async () => {
-    if (!confirm(`¿ELIMINAR "${project.title}"? Esta acción NO se puede deshacer.`)) return;
     try {
-      await api.deleteProject(project.id);
-      onRefresh();
+      await deleteProject();
     } catch (error) {
       alert('Error al eliminar proyecto');
     }
@@ -130,8 +110,7 @@ const ProjectCard = ({ project, depth = 0, onUnparent, onRefresh }) => {
 
   const handleSaveProject = async (projectId, updates) => {
     try {
-      await api.updateTask(projectId, updates);
-      onRefresh();
+      await saveProject(projectId, updates);
     } catch (error) {
       alert('Error al actualizar proyecto');
     }
@@ -139,8 +118,7 @@ const ProjectCard = ({ project, depth = 0, onUnparent, onRefresh }) => {
 
   const handleSaveMilestone = async (projectId, milestoneId, updates) => {
     try {
-      await api.updateMilestone(projectId, milestoneId, updates);
-      onRefresh();
+      await saveMilestone(projectId, milestoneId, updates);
     } catch (error) {
       alert('Error al actualizar tarea');
     }
@@ -429,3 +407,4 @@ const ProjectCard = ({ project, depth = 0, onUnparent, onRefresh }) => {
 };
 
 export default ProjectCard;
+
