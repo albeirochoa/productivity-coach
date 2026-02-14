@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Flame, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { api } from './utils/api';
 
 // Hooks
@@ -10,21 +10,15 @@ import useInboxHandlers from './hooks/useInboxHandlers';
 import useProjectHandlers from './hooks/useProjectHandlers';
 import useCapacity from './hooks/useCapacity';
 
-// Components
 import Sidebar from './components/Dashboard/Sidebar';
-import TodayView from './components/Dashboard/TodayView';
-import ThisWeekView from './components/Dashboard/ThisWeekView';
-import SomedayView from './components/Dashboard/SomedayView';
-import InboxView from './components/Dashboard/InboxView';
-import ProjectsView from './components/Dashboard/ProjectsView';
-import CalendarView from './components/Dashboard/CalendarView';
 import ChatBubble from './components/Chat/ChatBubble';
 import ProjectWizard from './components/ProjectWizard/ProjectWizard';
 import QuickCaptureModal from './components/shared/QuickCaptureModal';
 import EditInboxModal from './components/shared/EditInboxModal';
 import EditTaskModal from './components/shared/EditTaskModal';
-import CapacityAlert from './components/shared/CapacityAlert';
 import TemplateManager from './components/TemplateManager';
+import AppHeader from './components/layout/AppHeader';
+import MainViewRouter from './components/layout/MainViewRouter';
 
 const App = () => {
   // Data & derived state
@@ -190,111 +184,44 @@ const App = () => {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="px-8 py-6 border-b border-white/5 bg-[#0a0e27]/50">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">
-                {activeView === 'inbox' && 'Bandeja de entrada'}
-                {activeView === 'hoy' && 'Hoy'}
-                {activeView === 'thisweek' && 'Esta Semana'}
-                {activeView === 'someday' && 'Algun dia'}
-                {activeView === 'calendar' && 'Calendario'}
-                {activeView === 'projects' && 'Proyectos'}
-              </h1>
-              <p className="text-sm text-gray-400 mt-1">
-                {activeView === 'inbox' && `${inboxCount} ideas sin procesar`}
-                {activeView === 'hoy' && `${todayTasks.filter(t => t.status === 'active').length} tareas para hoy`}
-                {activeView === 'thisweek' && `${thisWeekTasks.length} tareas pendientes`}
-                {activeView === 'someday' && `${somedayTasks.length} tareas sin compromiso semanal`}
-                {activeView === 'calendar' && 'Arrastra proyectos desde el sidebar para planificar'}
-                {activeView === 'projects' && `${projects.filter(p => p.status !== 'done').length} proyectos activos`}
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-lg border border-white/10">
-                <Flame size={18} className="text-momentum" />
-                <span className="text-sm font-semibold">{completedThisWeek.length} esta semana</span>
-              </div>
-            </div>
-          </div>
-        </header>
+        <AppHeader
+          activeView={activeView}
+          inboxCount={inboxCount}
+          todayActiveCount={todayTasks.filter(t => t.status === 'active').length}
+          thisWeekCount={thisWeekTasks.length}
+          somedayCount={somedayTasks.length}
+          activeProjectCount={projects.filter(p => p.status !== 'done').length}
+          completedThisWeekCount={completedThisWeek.length}
+        />
 
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto px-8 py-6">
-          {/* Capacity Error Alert */}
-          {capacityError && activeView === 'thisweek' && (
-            <div className="max-w-4xl mx-auto mb-4">
-              <CapacityAlert
-                overload={capacityError}
-                onDismiss={clearCapacityError}
-                onAutoFix={handleAutoRedistribute}
-              />
-            </div>
-          )}
-
-          {activeView === 'inbox' && (
-            <InboxView
-              inbox={inbox}
-              onProcessItem={processInboxItem}
-              onEditItem={editInboxItem}
-              onDeleteItem={deleteInboxItem}
-              onOpenWizardWithItem={handleOpenWizardWithItem}
-            />
-          )}
-
-          {activeView === 'hoy' && (
-            <TodayView
-              todayTasks={todayTasks}
-              onToggleTask={toggleTask}
-              onRefresh={fetchData}
-              onSectionDrop={(taskId) => handleSectionDrop(taskId, 'hoy')}
-              onEditTask={setEditingTask}
-            />
-          )}
-
-          {activeView === 'thisweek' && (
-            <ThisWeekView
-              thisWeekTasks={thisWeekTasks}
-              completedThisWeek={completedThisWeek}
-              inboxCount={inboxCount}
-              onToggleTask={toggleTask}
-              onShowCapture={() => setShowCapture(true)}
-              onGoToInbox={() => setActiveView('inbox')}
-              onRefresh={() => {
-                fetchData();
-                refreshCapacity();
-              }}
-              capacityStatus={capacityStatus}
-              onEditTask={setEditingTask}
-              onSectionDrop={(taskId) => handleSectionDrop(taskId, 'thisweek')}
-            />
-          )}
-
-          {activeView === 'someday' && (
-            <SomedayView
-              somedayTasks={somedayTasks}
-              onToggleTask={toggleTask}
-              onRefresh={fetchData}
-              onSectionDrop={(taskId) => handleSectionDrop(taskId, 'someday')}
-              onEditTask={setEditingTask}
-            />
-          )}
-
-          {activeView === 'calendar' && (
-            <CalendarView tasks={thisWeekTasks.concat(projects)} />
-          )}
-
-          {activeView === 'projects' && (
-            <ProjectsView
-              projectTree={projectTree}
-              projects={projects}
-              onUnparent={unparentProject}
-              onOpenWizard={() => setShowProjectWizard(true)}
-              onRefresh={fetchData}
-            />
-          )}
-        </div>
+        <MainViewRouter
+          activeView={activeView}
+          capacityError={capacityError}
+          clearCapacityError={clearCapacityError}
+          handleAutoRedistribute={handleAutoRedistribute}
+          inbox={inbox}
+          processInboxItem={processInboxItem}
+          editInboxItem={editInboxItem}
+          deleteInboxItem={deleteInboxItem}
+          handleOpenWizardWithItem={handleOpenWizardWithItem}
+          todayTasks={todayTasks}
+          toggleTask={toggleTask}
+          fetchData={fetchData}
+          handleSectionDrop={handleSectionDrop}
+          setEditingTask={setEditingTask}
+          thisWeekTasks={thisWeekTasks}
+          completedThisWeek={completedThisWeek}
+          inboxCount={inboxCount}
+          setShowCapture={setShowCapture}
+          setActiveView={setActiveView}
+          refreshCapacity={refreshCapacity}
+          capacityStatus={capacityStatus}
+          somedayTasks={somedayTasks}
+          projects={projects}
+          projectTree={projectTree}
+          unparentProject={unparentProject}
+          setShowProjectWizard={setShowProjectWizard}
+        />
       </main>
 
       {/* Modals */}
