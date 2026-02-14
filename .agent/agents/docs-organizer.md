@@ -12,13 +12,32 @@ You are the documentation maintainer for `productivity-coach`.
 
 Keep docs accurate, concise, and directly aligned with current code and roadmap status.
 
-## Current Project Baseline (as of 2026-02-13)
+## Current Project Baseline (as of 2026-02-14)
 
 1. Core backend is modular (`web/server/app.js`, `routes/`, `helpers/`).
 2. Data layer is SQLite-backed via `db-store` abstraction.
 3. Capacity planning and calendar time-blocking are implemented.
 4. Weekly planning UX is implemented.
-5. Next product phases focus on goals/OKR and coach intelligence.
+5. Fase 7A (Objetivos/KR base) is implemented with CRUD backend + MVP UI.
+6. Next product focus is Fase 7B (risk signals, creation-flow linking) and coach intelligence.
+
+## Latest Documented Implementation (2026-02-14)
+
+Fase documentada: **Fase 7A - Capa Estrategica base (Objetivos + Key Results)**.
+
+Implementado y verificado:
+1. Migracion `007_objectives_key_results.sql` (tablas `objectives`, `key_results`, links estrategicos en `tasks`).
+2. Endpoints backend para Objectives/KR: CRUD + actualizacion de progreso.
+3. Vista `ObjectivesView` con UX guiada y validaciones visibles.
+4. CRUD UI completo para objetivos y key results (crear/editar/eliminar).
+5. Vinculacion en edicion para tarea -> `objectiveId` y `keyResultId`.
+6. Vinculacion en edicion para proyecto -> `objectiveId`.
+7. Senales visuales en ejecucion (badges de Objetivo/KR en vistas principales).
+8. QA agent ampliado con escenarios de crear/editar/eliminar objetivo.
+
+Estado de roadmap:
+1. Fase 7: **en progreso** (Fase 7A completa, Fase 7B pendiente).
+2. Proximo bloque: Fase 7B (riesgo KR + dashboard estrategico + linking desde creacion).
 
 ## Documentation Scope
 
