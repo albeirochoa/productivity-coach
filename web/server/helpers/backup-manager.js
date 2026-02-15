@@ -74,19 +74,29 @@ export class BackupManager {
     cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
 
     let deletedCount = 0;
+    let skippedCount = 0;
 
     files.forEach(file => {
-      const filePath = path.join(this.backupDir, file);
-      const stats = fs.statSync(filePath);
+      try {
+        const filePath = path.join(this.backupDir, file);
+        const stats = fs.statSync(filePath);
 
-      if (stats.mtime < cutoffDate) {
-        fs.unlinkSync(filePath);
-        deletedCount++;
+        if (stats.mtime < cutoffDate) {
+          fs.unlinkSync(filePath);
+          deletedCount++;
+        }
+      } catch (error) {
+        skippedCount++;
+        console.warn(`⚠️  Could not process backup file "${file}": ${error.code || error.message}`);
       }
     });
 
     if (deletedCount > 0) {
       console.log(`🗑️  Deleted ${deletedCount} old backup(s)`);
+    }
+
+    if (skippedCount > 0) {
+      console.log(`ℹ️  Skipped ${skippedCount} backup file(s) due to filesystem restrictions`);
     }
   }
 
