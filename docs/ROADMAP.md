@@ -557,29 +557,31 @@ Un coach de productividad que no solo te muestra tareas, sino que **planifica tu
 
 **Objetivo**: Pasar de comandos a recomendaciones de alto valor con tools compuestos que reducen fricción.
 
+**Status**: ✅ **Completado** (2026-02-16)
+
 **Tareas - Decision Engine v2**:
-- [ ] Generar "next best actions" con impacto esperado
-- [ ] Priorizacion: capacidad real + deadlines + objetivos + cumplimiento historico
-- [ ] Explicabilidad obligatoria por recomendacion
-- [ ] Integracion con guardrails actuales
+- [x] Generar "next best actions" con impacto esperado
+- [x] Priorizacion: capacidad real + deadlines + objetivos + cumplimiento historico
+- [x] Explicabilidad obligatoria por recomendacion
+- [x] Integracion con guardrails actuales
 
 **Tareas - Skills Compuestas (High Impact)**:
-- [ ] `smart_process_inbox`: inbox → tarea vinculada a objetivo + agendada (reduce 4 pasos a 1)
-- [ ] `plan_and_schedule_week`: plan semanal + auto-link a objetivos + bloques calendario (reduce ~15min a 1 confirmación)
-- [ ] `batch_reprioritize`: ejecuta redistribución automática al detectar sobrecarga (convierte aviso en acción)
-- [ ] `breakdown_milestone`: descompone milestone en sub-tareas + distribuye en calendario
+- [x] `smart_process_inbox`: inbox → tarea vinculada a objetivo + agendada (reduce 4 pasos a 1)
+- [x] `plan_and_schedule_week`: plan semanal + auto-link a objetivos + bloques calendario (reduce ~15min a 1 confirmación)
+- [x] `batch_reprioritize`: ejecuta redistribución automática al detectar sobrecarga (convierte aviso en acción)
+- [x] `breakdown_milestone`: descompone milestone en sub-tareas + distribuye en calendario
 
 **Entregables**:
-- Decision engine v2 con ranking de recomendaciones
-- Payload estandar: `reason`, `impact`, `tradeoff`, `confidence`
-- `web/server/helpers/llm-agent-mutation-tools.js` - 4 nuevos tools compuestos
-- `web/server/helpers/llm-agent-orchestrator.js` - Tool definitions + system prompt rules
-- `web/server/helpers/content-templates.js` - Templates para breakdown (opcional)
+- ✅ Decision engine v2 con ranking de recomendaciones (`web/server/helpers/decision-engine-v2.js` - 297 líneas)
+- ✅ Payload estandar: `reason`, `impact`, `tradeoff`, `confidence`
+- ✅ `web/server/helpers/llm-agent-mutation-tools.js` - 4 nuevos tools compuestos (preview + execute)
+- ✅ `web/server/helpers/llm-agent-orchestrator.js` - Tool definitions + system prompt rule #12
+- ✅ Templates para breakdown integrados en mutation tools
 
 **Criterio de salida**:
-- [ ] El coach propone plan semanal usable en < 3 minutos con razones verificables
-- [ ] Procesar inbox item a tarea agendada en 1 confirmación
-- [ ] Sobrecarga se resuelve con 1 click (no manualmente)
+- [x] El coach propone plan semanal usable en < 3 minutos con razones verificables
+- [x] Procesar inbox item a tarea agendada en 1 confirmación
+- [x] Sobrecarga se resuelve con 1 click (no manualmente)
 
 #### **Fase 10.5: Proactividad Util y UX de Asistente (Semanas 4-5)**
 
@@ -665,16 +667,16 @@ Polish: Fases 9.1, 10, 11 (agente + personalizacion + QA)
 
 ## 📋 Próximos Pasos Inmediatos
 
-1. **Completado**: Fase 10.3B (métricas agregadas + replay de conversaciones + KB estructura)
-2. **Siguiente**: Fase 10.4 - Motor de Coaching v2 + 4 Skills Compuestas
-   - `smart_process_inbox`: inbox → tarea vinculada + agendada
-   - `plan_and_schedule_week`: plan semanal completo con auto-link + calendario
-   - `batch_reprioritize`: redistribución automática en sobrecarga
-   - `breakdown_milestone`: milestone → sub-tareas + calendario
-3. **Luego**: Fase 10.5 - Proactividad + UX Coach-First + 2 Skills adicionales
+1. **Completado**: Fase 10.4 - Motor de Coaching v2 + 4 Skills Compuestas ✅ (2026-02-16)
+   - Decision Engine v2 con ranking y explainability
+   - 4 compound tools: smart_process_inbox, plan_and_schedule_week, batch_reprioritize, breakdown_milestone
+2. **Siguiente**: Fase 10.5 - Proactividad + UX Coach-First + 2 Skills adicionales
    - `end_of_day_closure`: ceremonia de cierre diaria
    - `quarterly_okr_setup`: template OKR trimestral
-4. **Después**: Fase 10.6 - Métricas de impacto + mejora continua
+   - Panel coach-first con recomendaciones y riesgos
+3. **Después**: Fase 10.6 - Métricas de impacto + mejora continua
+   - Acceptance rate, adherence, reschedule ratio
+   - Replay validation y ajuste de reglas
 
 ---
 
@@ -712,10 +714,10 @@ Polish: Fases 9.1, 10, 11 (agente + personalizacion + QA)
 - Fase 9: ✅ Conversational Assistant (2026-02-14)
 - Fase 9.1: ✅ LLM Agent Layer (2026-02-14)
 
-**Completado**: Fases 0-10.3B (Coach inteligente con métricas + learning structure tool)
-**Proximo**: Fase 10.4 (Motor v2 + Skills Compuestas)
-**Tiempo Invertido**: ~35 horas
-**Tiempo Estimado Restante**: ~3-4 días (10.4-10.6 + 11)
+**Completado**: Fases 0-10.4 (Decision Engine v2 + 4 Compound Skills) ✅
+**Proximo**: Fase 10.5 (Proactividad + UX Coach-First)
+**Tiempo Invertido**: ~38 horas
+**Tiempo Estimado Restante**: ~2-3 días (10.5-10.6 + 11)
 
 ### Fase 3 Completado (Days 1-3):
 
