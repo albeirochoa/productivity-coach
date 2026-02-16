@@ -586,6 +586,7 @@ Un coach de productividad que no solo te muestra tareas, sino que **planifica tu
 #### **Fase 10.5: Proactividad Util y UX de Asistente (Semanas 4-5)**
 
 **Objetivo**: Que la experiencia principal sea de asistente, no chat soporte.
+**Indicaciones Claude**: `docs/qa/CLAUDE-FASE10_5-INSTRUCTIONS.md`
 
 **Tareas - Proactividad Inteligente**:
 - [ ] Morning brief, midday correction y weekly review con triggers por riesgo real
