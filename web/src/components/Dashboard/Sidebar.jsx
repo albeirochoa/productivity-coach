@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Calendar, Inbox, Hash, Bell, Scissors, Settings, BookOpen, ChevronDown, ChevronRight, GripVertical, Sun, CalendarDays, Archive } from 'lucide-react';
+import { Calendar, Inbox, Hash, Bell, Scissors, Settings, BookOpen, ChevronDown, ChevronRight, GripVertical, Sun, CalendarDays, Archive, Layers, Target, Brain } from 'lucide-react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import ProjectTreeItem from '../shared/ProjectTreeItem';
 
@@ -22,6 +22,7 @@ const Sidebar = ({
   onSectionDrop,
   onOpenWizard,
   onOpenTemplateManager,
+  onOpenSettings,
 }) => {
   const [expanded, setExpanded] = useState({});
   const [dragOverSection, setDragOverSection] = useState(null);
@@ -38,11 +39,14 @@ const Sidebar = ({
 
   const navItems = [
     { id: 'inbox', icon: Inbox, label: 'Bandeja de entrada', count: inboxCount, color: 'text-blue-400', expandable: true },
-    { id: 'hoy', icon: Sun, label: 'Hoy', count: todayCount || 0, color: 'text-orange-400', expandable: true },
+    { id: 'hoy', icon: Sun, label: 'Próximo', count: todayCount || 0, color: 'text-orange-400', expandable: true },
     { id: 'thisweek', icon: CalendarDays, label: 'Esta Semana', count: thisWeekCount, color: 'text-green-400', expandable: true },
     { id: 'someday', icon: Archive, label: 'Algun dia', count: somedayCount || 0, color: 'text-yellow-400', expandable: true },
     { id: 'calendar', icon: Calendar, label: 'Calendario', count: 0, color: 'text-cyan-400', expandable: false },
     { id: 'projects', icon: Hash, label: 'Proyectos', count: activeProjectCount, color: 'text-purple-400', expandable: false },
+    { id: 'objectives', icon: Target, label: 'Objetivos', count: 0, color: 'text-emerald-400', expandable: false },
+    { id: 'coach', icon: Brain, label: 'Coach', count: 0, color: 'text-pink-400', expandable: false },
+    { id: 'areas', icon: Layers, label: 'Áreas', count: 0, color: 'text-indigo-400', expandable: false },
   ];
 
   const inboxItems = [...(inbox?.work || []), ...(inbox?.personal || [])];
@@ -74,6 +78,7 @@ const Sidebar = ({
             return (
             <div key={item.id}>
               <button
+                data-testid={`sidebar-${item.id}`}
                 onClick={() => {
                   setActiveView(item.id);
                   if (item.expandable) {
@@ -148,12 +153,12 @@ const Sidebar = ({
                 </div>
               )}
 
-              {/* Desplegable: Hoy */}
+              {/* Desplegable: Próximo */}
               {item.id === 'hoy' && expanded.hoy && (
                 <div className="ml-4 mt-1 space-y-1">
                   {(!todayTasks || todayTasks.filter(t => t.status === 'active').length === 0) ? (
                     <div className="px-3 py-1.5 text-xs text-gray-600 italic">
-                      Sin tareas para hoy
+                      Sin tareas próximas
                     </div>
                   ) : (
                     todayTasks.filter(t => t.status === 'active').map((task) => (
@@ -264,6 +269,7 @@ const Sidebar = ({
       <div className="p-4 border-t border-white/5 space-y-2">
         <button
           onClick={onOpenWizard}
+          data-testid="sidebar-new-project-btn"
           className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-purple-400 hover:bg-purple-500/10 transition-all text-sm font-medium"
         >
           <Scissors size={16} />
@@ -276,7 +282,10 @@ const Sidebar = ({
           <BookOpen size={16} />
           <span>Mis Plantillas</span>
         </button>
-        <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-white/5 transition-all text-sm">
+        <button
+          onClick={onOpenSettings}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:bg-white/5 transition-all text-sm"
+        >
           <Settings size={16} />
           <span>Configuracion</span>
         </button>

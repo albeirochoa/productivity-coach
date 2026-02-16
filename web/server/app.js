@@ -16,6 +16,10 @@ import { registerLegacyRoutes } from './routes/legacy-routes.js';
 import { registerChatRoutes } from './routes/chat-routes.js';
 import { registerCapacityRoutes } from './routes/capacity-routes.js';
 import { registerCalendarRoutes } from './routes/calendar-routes.js';
+import { registerAreasRoutes } from './routes/areas-routes.js';
+import { registerObjectivesRoutes } from './routes/objectives-routes.js';
+import { registerCoachRoutes } from './routes/coach-routes.js';
+import { registerCoachChatRoutes } from './routes/coach-chat-routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,7 +44,11 @@ export function createApp() {
 
     // Middleware
     app.use(cors());
-    app.use(bodyParser.json());
+    app.use(bodyParser.json({ charset: 'utf-8' }));
+    app.use((req, res, next) => {
+        res.set('Content-Type', 'application/json; charset=utf-8');
+        next();
+    });
     app.use(requestLogger); // Log all requests
 
     // Backup management endpoints
@@ -67,8 +75,9 @@ export function createApp() {
 
     // Data access (SQLite-backed, same interface as json-store)
     const dbStore = createDbStore();
-    const { readJson, writeJson, readCalendarBlocks, createCalendarBlock, updateCalendarBlock, deleteCalendarBlock } = dbStore;
-    const sharedDeps = { readJson, writeJson, generateId, getCurrentWeek };
+    const { readJson, writeJson, getDbManager, readCalendarBlocks, createCalendarBlock, updateCalendarBlock, deleteCalendarBlock } = dbStore;
+    const sharedDeps = { readJson, writeJson, generateId, getCurrentWeek, getDbManager };
+    const objectivesEnabled = process.env.FF_OBJECTIVES_ENABLED !== 'false';
 
     // Register routes
     registerTaskRoutes(app, sharedDeps);
@@ -79,6 +88,21 @@ export function createApp() {
     registerChatRoutes(app, { readJson, writeJson });
     registerCapacityRoutes(app, { readJson, writeJson });
     registerCalendarRoutes(app, { readJson, readCalendarBlocks, createCalendarBlock, updateCalendarBlock, deleteCalendarBlock });
+    registerAreasRoutes(app, { readJson, writeJson });
+    if (objectivesEnabled) {
+        registerObjectivesRoutes(app, { getDbManager, generateId });
+    }
+    const coachEnabled = process.env.FF_COACH_RULES_ENABLED !== 'false';
+    if (coachEnabled) {
+        registerCoachRoutes(app, { readJson, writeJson, getDbManager, generateId, getCurrentWeek });
+    }
+    const coachChatEnabled = process.env.FF_COACH_CHAT_ACTIONS_ENABLED !== 'false';
+    if (coachEnabled && coachChatEnabled) {
+        registerCoachChatRoutes(app, {
+            readJson, writeJson, getDbManager, generateId, getCurrentWeek,
+            readCalendarBlocks, createCalendarBlock, updateCalendarBlock, deleteCalendarBlock,
+        });
+    }
 
     // Error handler (must be last)
     app.use(errorHandler);

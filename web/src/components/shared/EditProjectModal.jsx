@@ -1,13 +1,19 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { X, Tag, Hash } from 'lucide-react';
+import { X, Tag, Hash, Target } from 'lucide-react';
+import useAreaCategories from '../../hooks/useAreaCategories';
+import useObjectivesCatalog from '../../hooks/useObjectivesCatalog';
 
 const EditProjectModal = ({ project, onClose, onSave }) => {
+  const { categories } = useAreaCategories();
+  const { objectiveOptions, loadingObjectives, objectivesError } = useObjectivesCatalog();
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     category: 'trabajo',
     strategy: 'goteo',
+    objectiveId: null,
   });
 
   useEffect(() => {
@@ -17,16 +23,10 @@ const EditProjectModal = ({ project, onClose, onSave }) => {
         description: project.description || '',
         category: project.category || 'trabajo',
         strategy: project.strategy || 'goteo',
+        objectiveId: project.objectiveId || null,
       });
     }
   }, [project]);
-
-  const categories = [
-    { id: 'trabajo', label: 'Trabajo', color: 'bg-blue-500' },
-    { id: 'personal', label: 'Personal', color: 'bg-green-500' },
-    { id: 'clientes', label: 'Clientes', color: 'bg-purple-500' },
-    { id: 'aprender', label: 'Aprender', color: 'bg-yellow-500' },
-  ];
 
   const strategies = [
     { id: 'goteo', label: 'Goteo', description: 'Una tarea a la vez' },
@@ -38,7 +38,7 @@ const EditProjectModal = ({ project, onClose, onSave }) => {
     e.preventDefault();
 
     if (!formData.title.trim()) {
-      alert('El título es obligatorio');
+      alert('El titulo es obligatorio');
       return;
     }
 
@@ -59,7 +59,6 @@ const EditProjectModal = ({ project, onClose, onSave }) => {
         className="bg-[#0a0e27] border border-white/10 rounded-2xl p-6 max-w-lg w-full mx-4"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold">Editar Proyecto</h3>
           <button
@@ -70,12 +69,10 @@ const EditProjectModal = ({ project, onClose, onSave }) => {
           </button>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Title */}
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">
-              Título del proyecto
+              Titulo del proyecto
             </label>
             <input
               type="text"
@@ -87,24 +84,22 @@ const EditProjectModal = ({ project, onClose, onSave }) => {
             />
           </div>
 
-          {/* Description */}
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">
-              Descripción
+              Descripcion
             </label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-cyan-500 min-h-[100px]"
-              placeholder="¿De qué trata este proyecto?"
+              placeholder="De que trata este proyecto"
             />
           </div>
 
-          {/* Category */}
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2 flex items-center gap-2">
               <Tag size={14} />
-              Categoría
+              Area
             </label>
             <div className="grid grid-cols-2 gap-2">
               {categories.map((cat) => (
@@ -127,11 +122,35 @@ const EditProjectModal = ({ project, onClose, onSave }) => {
             </div>
           </div>
 
-          {/* Strategy */}
+          <div>
+            <label className="block text-sm font-medium text-gray-400 mb-2 flex items-center gap-2">
+              <Target size={14} />
+              Objetivo estrategico (opcional)
+            </label>
+            <select
+              value={formData.objectiveId || ''}
+              onChange={(e) => setFormData({ ...formData, objectiveId: e.target.value || null })}
+              className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-cyan-500"
+            >
+              <option value="">Sin objetivo vinculado</option>
+              {objectiveOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            {loadingObjectives && <p className="text-xs text-gray-500 mt-1">Cargando objetivos...</p>}
+            {!loadingObjectives && objectivesError && (
+              <p className="text-xs text-yellow-400 mt-1">
+                {objectivesError}. Si no tienes objetivos, crea uno en la vista Objetivos.
+              </p>
+            )}
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2 flex items-center gap-2">
               <Hash size={14} />
-              Estrategia de ejecución
+              Estrategia de ejecucion
             </label>
             <div className="space-y-2">
               {strategies.map((strat) => (
@@ -154,7 +173,6 @@ const EditProjectModal = ({ project, onClose, onSave }) => {
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex gap-3 pt-4">
             <button
               type="button"

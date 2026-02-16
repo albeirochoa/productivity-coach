@@ -1,8 +1,12 @@
 import { Sparkles, Zap, CheckCircle, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { api } from '../../utils/api';
+import useAreaCategories from '../../hooks/useAreaCategories';
+import useObjectivesCatalog from '../../hooks/useObjectivesCatalog';
 
 const WizardStep1 = ({ projectForm, setProjectForm, isGenerating, onGenerateSteps, onUseTemplate }) => {
+  const { categories } = useAreaCategories();
+  const { objectiveOptions, loadingObjectives, objectivesError } = useObjectivesCatalog();
   const [userTemplates, setUserTemplates] = useState([]);
 
   useEffect(() => {
@@ -30,6 +34,7 @@ const WizardStep1 = ({ projectForm, setProjectForm, isGenerating, onGenerateStep
           type="text"
           value={projectForm.title}
           onChange={(e) => setProjectForm(prev => ({ ...prev, title: e.target.value }))}
+          data-testid="wizard-title-input"
           className="w-full bg-white/5 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
           placeholder="Ej: Crear Video YouTube sobre Google Ads"
           autoFocus
@@ -41,6 +46,7 @@ const WizardStep1 = ({ projectForm, setProjectForm, isGenerating, onGenerateStep
         <textarea
           value={projectForm.description}
           onChange={(e) => setProjectForm(prev => ({ ...prev, description: e.target.value }))}
+          data-testid="wizard-description-input"
           className="w-full bg-white/5 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
           rows="2"
           placeholder="Mas detalles..."
@@ -55,10 +61,9 @@ const WizardStep1 = ({ projectForm, setProjectForm, isGenerating, onGenerateStep
             onChange={(e) => setProjectForm(prev => ({ ...prev, category: e.target.value }))}
             className="w-full bg-white/5 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
-            <option value="trabajo">Trabajo</option>
-            <option value="contenido">Contenido</option>
-            <option value="clientes">Clientes</option>
-            <option value="aprender">Aprender</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>{cat.label}</option>
+            ))}
           </select>
         </div>
         <div>
@@ -72,6 +77,26 @@ const WizardStep1 = ({ projectForm, setProjectForm, isGenerating, onGenerateStep
             <option value="batching">Batching (sprint)</option>
           </select>
         </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-2">Objetivo estrategico (opcional)</label>
+        <select
+          value={projectForm.objectiveId || ''}
+          onChange={(e) => setProjectForm(prev => ({ ...prev, objectiveId: e.target.value || null }))}
+          className="w-full bg-white/5 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-60"
+          disabled={loadingObjectives}
+        >
+          <option value="">Sin objetivo</option>
+          {objectiveOptions.map((objective) => (
+            <option key={objective.id} value={objective.id}>{objective.label}</option>
+          ))}
+        </select>
+        {!loadingObjectives && objectivesError && (
+          <p className="text-xs text-yellow-400 mt-1">
+            {objectivesError}. Puedes continuar sin objetivo y vincular despues.
+          </p>
+        )}
       </div>
 
       <div>
@@ -114,6 +139,7 @@ const WizardStep1 = ({ projectForm, setProjectForm, isGenerating, onGenerateStep
           <button
             onClick={() => onGenerateSteps(false)}
             disabled={isGenerating || !projectForm.title.trim()}
+            data-testid="wizard-generate-btn"
             className="p-4 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 transition-all disabled:opacity-50 flex flex-col items-center gap-1"
           >
             {isGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
@@ -125,6 +151,7 @@ const WizardStep1 = ({ projectForm, setProjectForm, isGenerating, onGenerateStep
           <button
             onClick={() => onGenerateSteps(true)}
             disabled={isGenerating || !projectForm.title.trim()}
+            data-testid="wizard-generate-ai-btn"
             className="p-4 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition-all disabled:opacity-50 flex flex-col items-center gap-1"
           >
             {isGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}

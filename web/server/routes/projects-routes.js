@@ -135,7 +135,7 @@ export function registerProjectsRoutes(app, deps) {
                 completed: false,
                 completedAt: null,
                 sectionId: sectionId || null,
-                category: category || null,
+                category: category || project.category || 'trabajo',
                 priority: priority || 'normal',
                 dueDate: dueDate || null,
             };
@@ -261,6 +261,34 @@ export function registerProjectsRoutes(app, deps) {
 
             const hierarchy = buildTree();
             res.json(hierarchy);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    });
+
+    // POST /api/projects/:id/set-next-milestone - Marcar un milestone como "Próximo" (sin comprometer semana)
+    app.post('/api/projects/:id/set-next-milestone', async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { milestoneId } = req.body;
+            const data = await readJson('tasks-data.json');
+
+            const project = data.tasks.find(t => t.id === id && t.type === 'project');
+            if (!project) {
+                return res.status(404).json({ error: 'Project not found' });
+            }
+
+            // Encontrar el índice del milestone
+            const milestoneIndex = project.milestones?.findIndex(m => m.id === milestoneId);
+            if (milestoneIndex === -1 || milestoneIndex === undefined) {
+                return res.status(404).json({ error: 'Milestone not found' });
+            }
+
+            // Establecer como currentMilestone (marca "Próximo")
+            project.currentMilestone = milestoneIndex;
+
+            await writeJson('tasks-data.json', data);
+            res.json({ success: true, currentMilestone: milestoneIndex, project });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }

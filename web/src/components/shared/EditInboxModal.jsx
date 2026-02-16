@@ -1,15 +1,11 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Tag, AlertCircle } from 'lucide-react';
+import useAreaCategories from '../../hooks/useAreaCategories';
 
 const EditInboxModal = ({ editingItem, setEditingItem, onSave }) => {
-  if (!editingItem) return null;
+  const { categories } = useAreaCategories();
 
-  const categories = [
-    { id: 'trabajo', label: 'Trabajo', color: 'bg-blue-500' },
-    { id: 'personal', label: 'Personal', color: 'bg-green-500' },
-    { id: 'clientes', label: 'Clientes', color: 'bg-purple-500' },
-    { id: 'aprender', label: 'Aprender', color: 'bg-yellow-500' },
-  ];
+  if (!editingItem) return null;
 
   const priorities = [
     { id: 'low', label: 'Baja', color: 'text-blue-400' },

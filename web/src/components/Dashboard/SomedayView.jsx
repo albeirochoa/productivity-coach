@@ -1,17 +1,19 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Circle, CheckCircle2, Calendar, Archive, GripVertical, Edit2 } from 'lucide-react';
+import AreaFilter from '../shared/AreaFilter';
+import useAreaCategories from '../../hooks/useAreaCategories';
 
 const SomedayView = ({ somedayTasks, onToggleTask, onRefresh, onSectionDrop, onEditTask }) => {
-  const pending = somedayTasks.filter(t => t.status === 'active');
+  const [areaFilter, setAreaFilter] = useState(null);
+  const { categories } = useAreaCategories();
+
+  const allPending = somedayTasks.filter(t => t.status === 'active');
+  const pending = areaFilter ? allPending.filter(t => t.category === areaFilter) : allPending;
 
   const getCategoryColor = (category) => {
-    const colors = {
-      trabajo: 'bg-blue-500',
-      personal: 'bg-green-500',
-      clientes: 'bg-purple-500',
-      aprender: 'bg-yellow-500',
-    };
-    return colors[category] || 'bg-gray-500';
+    const found = categories.find(c => c.id === category);
+    return found ? found.color : 'bg-gray-500';
   };
 
   return (
@@ -29,6 +31,9 @@ const SomedayView = ({ somedayTasks, onToggleTask, onRefresh, onSectionDrop, onE
         <h2 className="text-3xl font-bold mb-2">Algun dia</h2>
         <p className="text-gray-400">Tareas sin compromiso semanal</p>
       </div>
+
+      {/* Area Filter */}
+      <AreaFilter selectedArea={areaFilter} onSelectArea={setAreaFilter} />
 
       {/* Tareas */}
       <div>

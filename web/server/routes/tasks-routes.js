@@ -5,6 +5,7 @@ import {
     detectOverload,
     formatMinutes,
 } from '../helpers/capacity-calculator.js';
+import { interceptTaskAction, interceptTaskMove } from '../helpers/coach-task-interceptor.js';
 
 export function registerTaskRoutes(app, deps) {
     const { readJson, writeJson, generateId, getCurrentWeek } = deps;
@@ -101,8 +102,43 @@ export function registerTaskRoutes(app, deps) {
     // POST /api/tasks - Crear nueva task
     app.post('/api/tasks', validate(TaskSchema), async (req, res) => {
         try {
-            const { title, type, category, thisWeek, description, milestones, strategy, dueDate, priority, reminders, saveAsTemplate, templateName } = req.validatedBody;
+            const {
+                title,
+                type,
+                category,
+                areaId,
+                thisWeek,
+                description,
+                milestones,
+                strategy,
+                dueDate,
+                priority,
+                reminders,
+                saveAsTemplate,
+                templateName,
+                objectiveId,
+                keyResultId,
+            } = req.validatedBody;
             const data = await readJson('tasks-data.json');
+            const normalizedAreaId = areaId || category || 'trabajo';
+            const forceFlag = req.body?.force === true;
+            const enforceInterceptorFlag = req.body?.enforceInterceptor === true;
+
+            const interventionEnabled = process.env.FF_COACH_INTERVENTION_ENABLED !== 'false';
+            let interceptor = null;
+            if (interventionEnabled) {
+                interceptor = await interceptTaskAction(
+                    { title, type, thisWeek, dueDate, priority, category: normalizedAreaId, areaId: normalizedAreaId, milestones },
+                    { readJson, getDbManager: deps.getDbManager }
+                );
+                if (interceptor?.mode === 'soft_block' && !forceFlag && enforceInterceptorFlag) {
+                    return res.status(409).json({
+                        error: 'Capacity advisory',
+                        message: interceptor.message,
+                        interceptor,
+                    });
+                }
+            }
 
             const newTask = {
                 id: type === 'project' ? title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') : generateId(),
@@ -111,10 +147,13 @@ export function registerTaskRoutes(app, deps) {
                 status: 'active',
                 thisWeek: thisWeek || false,
                 weekCommitted: thisWeek ? getCurrentWeek() : null,
-                category: category || 'trabajo',
+                category: normalizedAreaId,
+                areaId: normalizedAreaId,
                 dueDate: dueDate || null,
                 priority: priority || 'normal', // 'low', 'normal', 'high'
                 reminders: reminders || [],
+                objectiveId: objectiveId || null,
+                keyResultId: keyResultId || null,
                 createdAt: new Date().toISOString(),
                 completedAt: null
             };
@@ -132,7 +171,8 @@ export function registerTaskRoutes(app, deps) {
                     timeEstimate: m.time_estimate || m.timeEstimate || 45,
                     completed: false,
                     completedAt: null,
-                    sectionId: m.sectionId || null // Para asignar milestone a una seccion
+                    sectionId: m.sectionId || null,
+                    category: m.category || newTask.category // Herencia de área del proyecto
                 }));
                 newTask.currentMilestone = 0;
                 newTask.committedMilestones = [];
@@ -147,7 +187,7 @@ export function registerTaskRoutes(app, deps) {
                     data.templates.push({
                         id: templateId,
                         name: templateName || title,
-                        category: category || 'trabajo',
+                        category: normalizedAreaId,
                         strategy: strategy || 'goteo',
                         milestones: milestones.map(m => ({
                             title: m.title,
@@ -162,7 +202,7 @@ export function registerTaskRoutes(app, deps) {
             data.tasks.push(newTask);
             await writeJson('tasks-data.json', data);
 
-            res.json(newTask);
+            res.json({ ...newTask, interceptor });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
@@ -181,6 +221,26 @@ export function registerTaskRoutes(app, deps) {
             }
 
             const task = data.tasks[taskIndex];
+            const interventionEnabled = process.env.FF_COACH_INTERVENTION_ENABLED !== 'false';
+
+            if (interventionEnabled && ('thisWeek' in updates || 'dueDate' in updates)) {
+                const targetList = updates.thisWeek
+                    ? (updates.dueDate ? 'today' : 'week')
+                    : 'someday';
+                const intercept = await interceptTaskMove(id, targetList, {
+                    readJson,
+                    getDbManager: deps.getDbManager,
+                });
+                const forceFlag = req.body?.force === true;
+                const enforceInterceptorFlag = req.body?.enforceInterceptor === true;
+                if (intercept?.mode === 'soft_block' && !forceFlag && enforceInterceptorFlag) {
+                    return res.status(409).json({
+                        error: 'Capacity advisory',
+                        message: intercept.message,
+                        interceptor: intercept,
+                    });
+                }
+            }
 
             // Actualizar campos permitidos
             if ('thisWeek' in updates) {
@@ -199,10 +259,21 @@ export function registerTaskRoutes(app, deps) {
             }
 
             if ('title' in updates) task.title = updates.title;
-            if ('category' in updates) task.category = updates.category;
+            if ('areaId' in updates) {
+                task.areaId = updates.areaId || null;
+                if (updates.areaId) {
+                    task.category = updates.areaId;
+                }
+            }
+            if ('category' in updates) {
+                task.category = updates.category;
+                task.areaId = updates.category || task.areaId;
+            }
             if ('dueDate' in updates) task.dueDate = updates.dueDate;
             if ('priority' in updates) task.priority = updates.priority;
             if ('parentId' in updates) task.parentId = updates.parentId;
+            if ('objectiveId' in updates) task.objectiveId = updates.objectiveId || null;
+            if ('keyResultId' in updates) task.keyResultId = updates.keyResultId || null;
 
             data.tasks[taskIndex] = task;
             await writeJson('tasks-data.json', data);

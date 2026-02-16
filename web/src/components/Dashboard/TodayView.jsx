@@ -1,27 +1,24 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Circle, CheckCircle2, Calendar, Tag, GripVertical, Edit2 } from 'lucide-react';
+import AreaFilter from '../shared/AreaFilter';
+import useAreaCategories from '../../hooks/useAreaCategories';
 
-const TodayView = ({ todayTasks, onToggleTask, onRefresh, onSectionDrop, onEditTask }) => {
-  const today = new Date();
-  const todayString = today.toLocaleDateString('es-ES', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+const TodayView = ({ todayTasks = [], onToggleTask, onRefresh, onSectionDrop, onEditTask }) => {
+  const [areaFilter, setAreaFilter] = useState(null);
+  const { categories } = useAreaCategories();
 
-  const pending = todayTasks.filter(t => t.status === 'active');
-  const completed = todayTasks.filter(t => t.status === 'done');
+  const safeTasks = Array.isArray(todayTasks) ? todayTasks : [];
 
   const getCategoryColor = (category) => {
-    const colors = {
-      trabajo: 'bg-blue-500',
-      personal: 'bg-green-500',
-      clientes: 'bg-purple-500',
-      aprender: 'bg-yellow-500',
-    };
-    return colors[category] || 'bg-gray-500';
+    const found = categories.find(c => c.id === category);
+    return found ? found.color : 'bg-gray-500';
   };
+
+  const allPending = safeTasks.filter(t => t.status === 'active');
+  const allCompleted = safeTasks.filter(t => t.status === 'done');
+  const pending = areaFilter ? allPending.filter(t => t.category === areaFilter) : allPending;
+  const completed = areaFilter ? allCompleted.filter(t => t.category === areaFilter) : allCompleted;
 
   return (
     <div
@@ -35,9 +32,12 @@ const TodayView = ({ todayTasks, onToggleTask, onRefresh, onSectionDrop, onEditT
     >
       {/* Header */}
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-2">Hoy</h2>
-        <p className="text-gray-400 capitalize">{todayString}</p>
+        <h2 className="text-3xl font-bold mb-2">Próximo</h2>
+        <p className="text-gray-400">Tareas próximas a trabajar</p>
       </div>
+
+      {/* Area Filter */}
+      <AreaFilter selectedArea={areaFilter} onSelectArea={setAreaFilter} />
 
       {/* Tareas pendientes */}
       <div>
@@ -95,6 +95,16 @@ const TodayView = ({ todayTasks, onToggleTask, onRefresh, onSectionDrop, onEditT
                           Proyecto
                         </span>
                       )}
+                      {task.objectiveId && (
+                        <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded">
+                          Objetivo
+                        </span>
+                      )}
+                      {task.keyResultId && (
+                        <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-300 rounded">
+                          KR
+                        </span>
+                      )}
                     </div>
 
                     {/* Milestones si es proyecto */}
@@ -141,7 +151,7 @@ const TodayView = ({ todayTasks, onToggleTask, onRefresh, onSectionDrop, onEditT
         <div>
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-green-400">
             <CheckCircle2 size={20} />
-            Completadas hoy ({completed.length})
+            Completadas ({completed.length})
           </h3>
 
           <div className="space-y-2">

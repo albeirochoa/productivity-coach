@@ -1,7 +1,11 @@
+import { useState } from 'react';
 import { Rocket, Scissors } from 'lucide-react';
 import ProjectCard from '../shared/ProjectCard';
+import AreaFilter from '../shared/AreaFilter';
 
 const ProjectsView = ({ projectTree, projects, onUnparent, onOpenWizard, onRefresh }) => {
+  const [areaFilter, setAreaFilter] = useState(null);
+
   if (projects.length === 0) {
     return (
       <div className="max-w-5xl mx-auto">
@@ -20,9 +24,15 @@ const ProjectsView = ({ projectTree, projects, onUnparent, onOpenWizard, onRefre
     );
   }
 
+  const filteredTree = areaFilter
+    ? projectTree.filter(p => p.category === areaFilter)
+    : projectTree;
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      {projectTree.map((project) => (
+      <AreaFilter selectedArea={areaFilter} onSelectArea={setAreaFilter} />
+
+      {filteredTree.map((project) => (
         <ProjectCard
           key={project.id}
           project={project}
@@ -31,6 +41,12 @@ const ProjectsView = ({ projectTree, projects, onUnparent, onOpenWizard, onRefre
           onRefresh={onRefresh}
         />
       ))}
+
+      {filteredTree.length === 0 && areaFilter && (
+        <div className="text-center py-12 bg-white/5 border border-white/10 rounded-xl">
+          <p className="text-gray-400">No hay proyectos en esta área</p>
+        </div>
+      )}
     </div>
   );
 };

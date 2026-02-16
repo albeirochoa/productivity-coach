@@ -5,6 +5,9 @@ import ThisWeekView from '../Dashboard/ThisWeekView';
 import SomedayView from '../Dashboard/SomedayView';
 import CalendarView from '../Dashboard/CalendarView';
 import ProjectsView from '../Dashboard/ProjectsView';
+import AreasView from '../Dashboard/AreasView';
+import ObjectivesView from '../Dashboard/ObjectivesView';
+import CoachView from '../Dashboard/CoachView';
 
 const MainViewRouter = ({
   activeView,
@@ -105,6 +108,19 @@ const MainViewRouter = ({
           onRefresh={fetchData}
         />
       )}
+
+      {activeView === 'areas' && (
+        <AreasView
+          onNavigateToTasks={(view, category) => {
+            setActiveView(view);
+            // TODO: Implement category filter in task views
+          }}
+        />
+      )}
+
+      {activeView === 'objectives' && <ObjectivesView />}
+
+      {activeView === 'coach' && <CoachView onRefreshData={fetchData} />}
     </div>
   );
 };

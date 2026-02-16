@@ -124,6 +124,9 @@ export function createDbStore() {
                 thisWeek: !!row.this_week,
                 weekCommitted: row.week_committed,
                 category: row.category,
+                areaId: row.area_id || row.category || 'general',
+                keyResultId: row.key_result_id || null,
+                objectiveId: row.objective_id || null,
                 createdAt: row.created_at,
                 completedAt: row.completed_at,
                 dueDate: row.due_date || null,
@@ -203,6 +206,8 @@ export function createDbStore() {
             text: row.text,
             date: row.created_at,
             category: row.category || 'trabajo', // Add category field
+            objectiveId: row.objective_id || null,
+            keyResultId: row.key_result_id || null,
         };
         if (row.due_date) item.dueDate = row.due_date;
         if (row.priority && row.priority !== 'normal') item.priority = row.priority;
@@ -336,15 +341,15 @@ export function createDbStore() {
                     id, title, description, type, status, category, strategy,
                     this_week, week_committed, parent_id, current_milestone,
                     created_at, completed_at, migrated_from, processed_from,
-                    due_date, priority
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    due_date, priority, area_id, key_result_id, objective_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `, [
                 task.id,
                 task.title,
                 task.description || null,
                 task.type || 'simple',
                 task.status || 'active',
-                task.category || null,
+                task.category || task.areaId || null,
                 task.strategy || null,
                 task.thisWeek ? 1 : 0,
                 task.weekCommitted || null,
@@ -356,6 +361,9 @@ export function createDbStore() {
                 JSON.stringify(task.processedFrom || {}),
                 task.dueDate || null,
                 task.priority || 'normal',
+                task.areaId || task.category || 'general',
+                task.keyResultId || null,
+                task.objectiveId || null,
             ]);
 
             // Sync milestones for projects
@@ -402,9 +410,19 @@ export function createDbStore() {
             const items = inbox[category] || [];
             for (const item of items) {
                 dbManager.exec(`
-                    INSERT INTO inbox (id, category, text, due_date, priority, reminders, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                `, [item.id, category, item.text, item.dueDate || null, item.priority || 'normal', JSON.stringify(item.reminders || []), item.date || new Date().toISOString()]);
+                    INSERT INTO inbox (id, category, text, due_date, priority, reminders, objective_id, key_result_id, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `, [
+                    item.id,
+                    category,
+                    item.text,
+                    item.dueDate || null,
+                    item.priority || 'normal',
+                    JSON.stringify(item.reminders || []),
+                    item.objectiveId || null,
+                    item.keyResultId || null,
+                    item.date || new Date().toISOString(),
+                ]);
             }
         }
     }

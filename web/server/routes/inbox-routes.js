@@ -18,7 +18,7 @@ export function registerInboxRoutes(app, deps) {
 
     app.post('/api/inbox', async (req, res) => {
         try {
-            const { text, type, dueDate, priority, reminders, category } = req.body;
+            const { text, type, dueDate, priority, reminders, category, objectiveId, keyResultId } = req.body;
             const data = await readJson('tasks-data.json');
 
             if (!data.inbox[type]) {
@@ -32,6 +32,8 @@ export function registerInboxRoutes(app, deps) {
                 dueDate: dueDate || null,
                 priority: priority || 'normal',
                 reminders: reminders || [],
+                objectiveId: objectiveId || null,
+                keyResultId: keyResultId || null,
                 date: new Date().toISOString()
             });
 
@@ -62,7 +64,7 @@ export function registerInboxRoutes(app, deps) {
     app.patch('/api/inbox/:type/:id', async (req, res) => {
         try {
             const { type, id } = req.params;
-            const { text, category, dueDate, priority } = req.body;
+            const { text, category, dueDate, priority, objectiveId, keyResultId } = req.body;
             const data = await readJson('tasks-data.json');
 
             if (!data.inbox[type]) {
@@ -79,6 +81,8 @@ export function registerInboxRoutes(app, deps) {
             if ('category' in req.body) item.category = category;
             if ('dueDate' in req.body) item.dueDate = dueDate;
             if ('priority' in req.body) item.priority = priority;
+            if ('objectiveId' in req.body) item.objectiveId = objectiveId || null;
+            if ('keyResultId' in req.body) item.keyResultId = keyResultId || null;
             item.updated_date = new Date().toISOString();
 
             await writeJson('tasks-data.json', data);
@@ -92,7 +96,7 @@ export function registerInboxRoutes(app, deps) {
     app.post('/api/inbox/:type/:id/process', async (req, res) => {
         try {
             const { type, id } = req.params;
-            const { taskType, thisWeek, category } = req.body; // taskType: 'simple' | 'project'
+            const { taskType, thisWeek, category, objectiveId, keyResultId } = req.body; // taskType: 'simple' | 'project'
             const data = await readJson('tasks-data.json');
 
             // Encontrar item en inbox
@@ -100,6 +104,10 @@ export function registerInboxRoutes(app, deps) {
             if (!item) {
                 return res.status(404).json({ error: 'Inbox item not found' });
             }
+
+            const resolvedCategory = category || item.category || (type === 'work' ? 'trabajo' : 'familia');
+            const resolvedObjectiveId = objectiveId !== undefined ? (objectiveId || null) : (item.objectiveId || null);
+            const resolvedKeyResultId = keyResultId !== undefined ? (keyResultId || null) : (item.keyResultId || null);
 
             // Crear nueva task
             const newTask = {
@@ -109,10 +117,13 @@ export function registerInboxRoutes(app, deps) {
                 status: 'active',
                 thisWeek: thisWeek || false,
                 weekCommitted: thisWeek ? getCurrentWeek() : null,
-                category: category || (type === 'work' ? 'trabajo' : 'familia'),
+                category: resolvedCategory,
+                areaId: resolvedCategory,
                 dueDate: item.dueDate || null,
                 priority: item.priority || 'normal',
                 reminders: item.reminders || [],
+                objectiveId: resolvedObjectiveId,
+                keyResultId: resolvedKeyResultId,
                 createdAt: new Date().toISOString(),
                 completedAt: null,
                 processedFrom: {

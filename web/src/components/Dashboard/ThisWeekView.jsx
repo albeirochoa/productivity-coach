@@ -1,12 +1,14 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckCircle, Plus, Calendar, Clock, ChevronRight, Bell, Hash, TrendingUp, AlertTriangle, Edit2, GripVertical
 } from 'lucide-react';
 import { api } from '../../utils/api';
+import AreaFilter from '../shared/AreaFilter';
 
 const ThisWeekView = ({
-  thisWeekTasks,
-  completedThisWeek,
+  thisWeekTasks = [],
+  completedThisWeek = [],
   inboxCount,
   onToggleTask,
   onShowCapture,
@@ -16,11 +18,23 @@ const ThisWeekView = ({
   onEditTask,
   onSectionDrop,
 }) => {
+  const [areaFilter, setAreaFilter] = useState(null);
+
+  const safeWeekTasks = Array.isArray(thisWeekTasks) ? thisWeekTasks : [];
+  const safeCompletedTasks = Array.isArray(completedThisWeek) ? completedThisWeek : [];
+
+  console.log('🔍 ThisWeekView Debug:', {
+    received: { week: thisWeekTasks, completed: safeCompletedTasks },
+    safeLengths: { week: safeWeekTasks.length, completed: safeCompletedTasks.length },
+    areaFilter,
+    firstTask: safeWeekTasks?.[0]?.title
+  });
+
   // Expandir proyectos en milestones individuales comprometidos
   const buildWeekItems = () => {
     const items = [];
 
-    thisWeekTasks.forEach(task => {
+    safeWeekTasks.forEach(task => {
       if (task.type === 'project' && task.milestones) {
         const committed = Array.isArray(task.committedMilestones)
           ? task.committedMilestones
@@ -51,7 +65,10 @@ const ThisWeekView = ({
     return items;
   };
 
-  const weekItems = buildWeekItems();
+  const allWeekItems = buildWeekItems();
+  const weekItems = areaFilter
+    ? allWeekItems.filter(item => item.task.category === areaFilter)
+    : allWeekItems;
 
   const handleToggleMilestone = async (projectId, milestoneId, completed) => {
     try {
@@ -110,6 +127,9 @@ const ThisWeekView = ({
         </div>
       )}
 
+      {/* Area Filter */}
+      <AreaFilter selectedArea={areaFilter} onSelectArea={setAreaFilter} />
+
       {/* Quick Add */}
       <button
         onClick={onShowCapture}
@@ -156,6 +176,16 @@ const ThisWeekView = ({
                       <span className="px-2 py-0.5 rounded text-xs bg-white/5 text-gray-400">
                         {task.category}
                       </span>
+                      {task.objectiveId && (
+                        <span className="px-2 py-0.5 rounded text-xs bg-emerald-500/20 text-emerald-300">
+                          Objetivo
+                        </span>
+                      )}
+                      {task.keyResultId && (
+                        <span className="px-2 py-0.5 rounded text-xs bg-cyan-500/20 text-cyan-300">
+                          KR
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 text-xs text-gray-400">
                       <span>{task.milestones.filter(m => m.completed).length}/{task.milestones.length} pasos</span>
@@ -223,6 +253,16 @@ const ThisWeekView = ({
                     <span className="px-2 py-0.5 rounded text-xs bg-white/5 text-gray-400">
                       {task.category}
                     </span>
+                    {task.objectiveId && (
+                      <span className="px-2 py-0.5 rounded text-xs bg-emerald-500/20 text-emerald-300">
+                        Objetivo
+                      </span>
+                    )}
+                    {task.keyResultId && (
+                      <span className="px-2 py-0.5 rounded text-xs bg-cyan-500/20 text-cyan-300">
+                        KR
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2 text-xs text-gray-400">
@@ -274,16 +314,16 @@ const ThisWeekView = ({
       </div>
 
       {/* Completed Tasks */}
-      {completedThisWeek.length > 0 && (
+      {safeCompletedTasks.length > 0 && (
         <div className="mt-8">
           <details className="group">
             <summary className="flex items-center gap-2 text-sm text-gray-400 cursor-pointer hover:text-white transition-colors mb-3">
               <ChevronRight size={16} className="transition-transform group-open:rotate-90" />
               <span>Completadas</span>
-              <span className="text-gray-500">({completedThisWeek.length})</span>
+              <span className="text-gray-500">({safeCompletedTasks.length})</span>
             </summary>
             <div className="space-y-2 pl-2">
-              {completedThisWeek.map(task => (
+              {safeCompletedTasks.map(task => (
                 <div
                   key={task.id}
                   className="flex items-center gap-3 px-4 py-2 rounded-xl opacity-50 hover:opacity-70 transition-all"
@@ -309,7 +349,7 @@ const ThisWeekView = ({
       )}
 
       {/* Empty state */}
-      {weekItems.length === 0 && completedThisWeek.length === 0 && (
+      {weekItems.length === 0 && safeCompletedTasks.length === 0 && (
         <div className="text-center py-20">
           <Calendar size={64} className="mx-auto mb-4 text-gray-600 opacity-20" />
           <h3 className="text-xl font-semibold mb-2 text-gray-400">Todo listo por ahora</h3>
