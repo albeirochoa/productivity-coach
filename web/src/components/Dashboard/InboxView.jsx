@@ -1,4 +1,4 @@
-import { Calendar, Bell, Edit2, Trash2, GripVertical } from 'lucide-react';
+import { Calendar, Bell, Edit2, Trash2, GripVertical, Plus } from 'lucide-react';
 
 const InboxView = ({
   inbox,
@@ -6,6 +6,7 @@ const InboxView = ({
   onEditItem,
   onDeleteItem,
   onOpenWizardWithItem,
+  onShowCapture,
 }) => {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -14,6 +15,19 @@ const InboxView = ({
           Procesa tus ideas capturadas: decide si son tareas simples para esta semana o proyectos grandes.
         </p>
       </div>
+
+      {/* Quick Add */}
+      {onShowCapture && (
+        <button
+          onClick={onShowCapture}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed border-white/10 text-gray-400 hover:border-momentum hover:text-momentum hover:bg-white/5 transition-all mb-6"
+        >
+          <Plus size={20} />
+          <span className="font-medium">Anadir tarea</span>
+          <div className="flex-1" />
+          <kbd className="px-2 py-1 bg-white/5 rounded text-xs">Q</kbd>
+        </button>
+      )}
 
       {['work', 'personal'].map(type => (
         <div key={type} className="space-y-3">
@@ -44,8 +58,8 @@ const InboxView = ({
                       <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
                         {item.category && (
                           <>
-                            <span className="px-2 py-0.5 rounded text-xs bg-white/5 text-gray-400">
-                              {item.category}
+                            <span className="px-2 py-0.5 rounded text-xs bg-white/5 text-gray-400 capitalize">
+                              {item.category === 'work' ? 'Trabajo' : item.category === 'personal' ? 'Personal' : item.category}
                             </span>
                             <span className="text-gray-600">&bull;</span>
                           </>

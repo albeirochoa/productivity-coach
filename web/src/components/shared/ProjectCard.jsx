@@ -184,9 +184,13 @@ const ProjectCard = ({ project, depth = 0, onUnparent, onRefresh }) => {
           </button>
         )}
         {mIdx === project.currentMilestone && !milestone.completed && !isCommitted && (
-          <span className="text-xs bg-purple-500/30 text-purple-300 px-2 py-0.5 rounded">
+          <button
+            onClick={() => handleCommitMilestoneToWeek(milestone.id)}
+            className="text-xs bg-purple-500/30 text-purple-300 px-2 py-0.5 rounded hover:bg-purple-500/50 transition-all"
+            title="Mover a Próximo (comprometer a esta semana)"
+          >
             Proximo
-          </span>
+          </button>
         )}
       </div>
     );

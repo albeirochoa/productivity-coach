@@ -1,15 +1,18 @@
 import { useCallback } from 'react';
 import { api } from '../utils/api';
 
-const useTaskHandlers = (fetchData) => {
+const useTaskHandlers = (fetchData, { onKrPrompt } = {}) => {
   const toggleTask = useCallback(async (id) => {
     try {
-      await api.toggleTask(id);
+      const res = await api.toggleTask(id);
       fetchData();
+      if (res.data?.linkedKr && onKrPrompt) {
+        onKrPrompt(res.data.linkedKr);
+      }
     } catch (error) {
       console.error('Error toggling task:', error);
     }
-  }, [fetchData]);
+  }, [fetchData, onKrPrompt]);
 
   const toggleMilestone = useCallback(async (projectId, milestoneId, completed) => {
     try {
@@ -62,6 +65,16 @@ const useTaskHandlers = (fetchData) => {
     }
   }, [fetchData]);
 
+  const deleteTask = useCallback(async (taskId) => {
+    try {
+      await api.deleteTask(taskId);
+      fetchData();
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      alert('Error al eliminar tarea');
+    }
+  }, [fetchData]);
+
   return {
     toggleTask,
     toggleMilestone,
@@ -69,6 +82,7 @@ const useTaskHandlers = (fetchData) => {
     removeFromWeek,
     addQuickTask,
     updateTask,
+    deleteTask,
   };
 };
 

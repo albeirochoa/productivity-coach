@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: productivity-coach
+    runtime: node
+    buildCommand: cd web && npm install && npm run build
+    startCommand: cd web && node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false

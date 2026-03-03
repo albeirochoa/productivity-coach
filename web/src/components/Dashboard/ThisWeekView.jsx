@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  CheckCircle, Plus, Calendar, Clock, ChevronRight, Bell, Hash, TrendingUp, AlertTriangle, Edit2, GripVertical
+  CheckCircle, Plus, Calendar, Clock, ChevronRight, Bell, Hash, TrendingUp, AlertTriangle, Edit2, GripVertical, Target, Trash2
 } from 'lucide-react';
 import { api } from '../../utils/api';
 import AreaFilter from '../shared/AreaFilter';
+import KrBadge from '../shared/KrBadge';
 
 const ThisWeekView = ({
   thisWeekTasks = [],
@@ -16,12 +17,23 @@ const ThisWeekView = ({
   onRefresh,
   capacityStatus,
   onEditTask,
+  onDeleteTask,
   onSectionDrop,
+  krMap = {},
 }) => {
   const [areaFilter, setAreaFilter] = useState(null);
+  const [atRiskKrs, setAtRiskKrs] = useState([]);
+  const [showRiskSection, setShowRiskSection] = useState(true);
 
   const safeWeekTasks = Array.isArray(thisWeekTasks) ? thisWeekTasks : [];
   const safeCompletedTasks = Array.isArray(completedThisWeek) ? completedThisWeek : [];
+
+  // Fetch KRs at risk
+  useEffect(() => {
+    api.getObjectiveRiskSignals()
+      .then(res => setAtRiskKrs(res.data?.risks || []))
+      .catch(() => setAtRiskKrs([]));
+  }, []);
 
   console.log('🔍 ThisWeekView Debug:', {
     received: { week: thisWeekTasks, completed: safeCompletedTasks },
@@ -127,6 +139,56 @@ const ThisWeekView = ({
         </div>
       )}
 
+      {/* KRs at Risk */}
+      {atRiskKrs.length > 0 && showRiskSection && (
+        <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl overflow-hidden">
+          <button
+            onClick={() => setShowRiskSection(prev => !prev)}
+            className="w-full flex items-center gap-3 px-4 py-3 text-left"
+          >
+            <Target size={18} className="text-amber-400" />
+            <span className="text-sm font-medium text-amber-300">
+              {atRiskKrs.length} KR{atRiskKrs.length > 1 ? 's' : ''} en riesgo
+            </span>
+            <span className="text-xs text-gray-400">— necesitan avance esta semana</span>
+            <ChevronRight size={14} className="ml-auto text-gray-500 transition-transform rotate-90" />
+          </button>
+          <div className="px-4 pb-3 space-y-3">
+            {atRiskKrs.slice(0, 5).map(kr => {
+              const linkedTasks = safeWeekTasks.filter(t => t.keyResultId === kr.id && t.status === 'active');
+              const riskColor = kr.risk.level === 'high' ? 'text-red-400 border-red-500/30' : 'text-amber-400 border-amber-500/30';
+              return (
+                <div key={kr.id} className={`border-l-2 ${kr.risk.level === 'high' ? 'border-red-500/50' : 'border-amber-500/50'} pl-3`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-xs font-medium ${riskColor}`}>
+                      {kr.risk.level === 'high' ? 'ALTO' : 'MEDIO'}
+                    </span>
+                    <span className="text-sm">{kr.title}</span>
+                    <span className="text-xs text-gray-500">{kr.progress}%</span>
+                    <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden max-w-[80px]">
+                      <div
+                        className={`h-full rounded-full ${kr.risk.level === 'high' ? 'bg-red-500' : 'bg-amber-500'}`}
+                        style={{ width: `${Math.min(kr.progress, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 mb-1">
+                    {kr.objectiveTitle} &middot; {kr.currentValue}/{kr.targetValue} {kr.unit || ''}
+                  </div>
+                  {linkedTasks.length > 0 ? (
+                    <div className="text-xs text-gray-400">
+                      {linkedTasks.length} tarea{linkedTasks.length > 1 ? 's' : ''} esta semana: {linkedTasks.map(t => t.title).join(', ')}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-amber-400/70">Sin tareas esta semana para este KR</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Area Filter */}
       <AreaFilter selectedArea={areaFilter} onSelectArea={setAreaFilter} />
 
@@ -176,31 +238,41 @@ const ThisWeekView = ({
                       <span className="px-2 py-0.5 rounded text-xs bg-white/5 text-gray-400">
                         {task.category}
                       </span>
-                      {task.objectiveId && (
+                      {task.keyResultId && krMap[task.keyResultId] ? (
+                        <KrBadge kr={krMap[task.keyResultId]} />
+                      ) : task.objectiveId ? (
                         <span className="px-2 py-0.5 rounded text-xs bg-emerald-500/20 text-emerald-300">
                           Objetivo
                         </span>
-                      )}
-                      {task.keyResultId && (
-                        <span className="px-2 py-0.5 rounded text-xs bg-cyan-500/20 text-cyan-300">
-                          KR
-                        </span>
-                      )}
+                      ) : null}
                     </div>
                     <div className="flex items-center gap-2 text-xs text-gray-400">
                       <span>{task.milestones.filter(m => m.completed).length}/{task.milestones.length} pasos</span>
                     </div>
                   </div>
 
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEditTask(task);
-                    }}
-                    className="opacity-0 group-hover:opacity-100 p-2 hover:bg-white/10 rounded-lg transition-all"
-                  >
-                    <Edit2 size={14} className="text-gray-400" />
-                  </button>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditTask(task);
+                      }}
+                      className="p-2 hover:bg-white/10 rounded-lg transition-all"
+                    >
+                      <Edit2 size={14} className="text-gray-400" />
+                    </button>
+                    {onDeleteTask && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm(`¿Eliminar "${task.title}"?`)) onDeleteTask(task.id);
+                        }}
+                        className="p-2 hover:bg-red-500/10 rounded-lg transition-all"
+                      >
+                        <Trash2 size={14} className="text-gray-400 hover:text-red-400" />
+                      </button>
+                    )}
+                  </div>
 
                   {milestone.timeEstimate && (
                     <div className="flex items-center gap-1 text-xs text-gray-500">
@@ -253,16 +325,13 @@ const ThisWeekView = ({
                     <span className="px-2 py-0.5 rounded text-xs bg-white/5 text-gray-400">
                       {task.category}
                     </span>
-                    {task.objectiveId && (
+                    {task.keyResultId && krMap[task.keyResultId] ? (
+                      <KrBadge kr={krMap[task.keyResultId]} />
+                    ) : task.objectiveId ? (
                       <span className="px-2 py-0.5 rounded text-xs bg-emerald-500/20 text-emerald-300">
                         Objetivo
                       </span>
-                    )}
-                    {task.keyResultId && (
-                      <span className="px-2 py-0.5 rounded text-xs bg-cyan-500/20 text-cyan-300">
-                        KR
-                      </span>
-                    )}
+                    ) : null}
                   </div>
 
                   <div className="flex items-center gap-2 text-xs text-gray-400">
@@ -291,15 +360,28 @@ const ThisWeekView = ({
                   </div>
                 </div>
 
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEditTask(task);
-                  }}
-                  className="opacity-0 group-hover:opacity-100 p-2 hover:bg-white/10 rounded-lg transition-all"
-                >
-                  <Edit2 size={14} className="text-gray-400" />
-                </button>
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditTask(task);
+                    }}
+                    className="p-2 hover:bg-white/10 rounded-lg transition-all"
+                  >
+                    <Edit2 size={14} className="text-gray-400" />
+                  </button>
+                  {onDeleteTask && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm(`¿Eliminar "${task.title}"?`)) onDeleteTask(task.id);
+                      }}
+                      className="p-2 hover:bg-red-500/10 rounded-lg transition-all"
+                    >
+                      <Trash2 size={14} className="text-gray-400 hover:text-red-400" />
+                    </button>
+                  )}
+                </div>
 
                 {task.type === 'project' && task.milestones?.[task.currentMilestone]?.timeEstimate && (
                   <div className="flex items-center gap-1 text-xs text-gray-500">

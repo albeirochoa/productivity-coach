@@ -22,6 +22,9 @@ server.pid
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
+*.db
+*.db-wal
+*.db-shm
 
 # Local backups/data snapshots
 backups/
@@ -32,6 +35,13 @@ coach-data.json
 coach-memory.json
 profile.json
 tasks-data.json
+
+# Temp files
+tasks-temp.json
+check-objectives-link.js
+
+# QA artifacts (screenshots, test scripts)
+web/qa/
 
 # Noise / accidental files
 nul

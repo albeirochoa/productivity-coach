@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Target,
   TrendingUp,
@@ -121,6 +121,20 @@ const ObjectivesView = () => {
 
   const [editingObjectiveId, setEditingObjectiveId] = useState(null);
   const [editingKrId, setEditingKrId] = useState(null);
+  const objectiveFormRef = useRef(null);
+  const krFormRef = useRef(null);
+
+  useEffect(() => {
+    if (editingObjectiveId && objectiveFormRef.current) {
+      objectiveFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [editingObjectiveId]);
+
+  useEffect(() => {
+    if (editingKrId && krFormRef.current) {
+      krFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [editingKrId]);
 
   const [savingObjective, setSavingObjective] = useState(false);
   const [savingKr, setSavingKr] = useState(false);
@@ -463,6 +477,7 @@ const ObjectivesView = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <form
+          ref={objectiveFormRef}
           onSubmit={handleCreateOrUpdateObjective}
           className="glass rounded-2xl p-5 space-y-3 border border-white/10"
           data-testid="objective-create-form"
@@ -567,6 +582,7 @@ const ObjectivesView = () => {
         </form>
 
         <form
+          ref={krFormRef}
           onSubmit={handleCreateOrUpdateKr}
           className="glass rounded-2xl p-5 space-y-3 border border-white/10"
           data-testid="kr-create-form"

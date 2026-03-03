@@ -6,6 +6,12 @@ const resolveApiUrl = () => {
     return envUrl.replace(/\/$/, '');
   }
 
+  // In production (same origin), use relative path
+  if (import.meta.env.PROD) {
+    return '/api';
+  }
+
+  // In development, use localhost with backend port
   if (typeof window !== 'undefined') {
     return `${window.location.protocol}//${window.location.hostname}:3000/api`;
   }
@@ -103,6 +109,7 @@ export const api = {
     axios.delete(`${API_URL}/projects/${projectId}/sections/${sectionId}`),
   archiveProject: (id) => axios.patch(`${API_URL}/tasks/${id}`, { status: 'archived' }),
   deleteProject: (id) => axios.delete(`${API_URL}/tasks/${id}`),
+  deleteTask: (id) => axios.delete(`${API_URL}/tasks/${id}`),
 
   // Calendar / Time Blocking
   getCalendarBlocks: (filters) => axios.get(`${API_URL}/calendar/blocks`, { params: filters }),
@@ -159,4 +166,8 @@ export const api = {
   sendCoachCheckinResponse: (data) => axios.post(`${API_URL}/coach/checkin/response`, data),
   getCoachPatterns: () => axios.get(`${API_URL}/coach/patterns`),
   analyzeCoachPatterns: () => axios.post(`${API_URL}/coach/patterns/analyze`),
+
+  // Coach Ceremonies (Fase 10.5)
+  getCoachCeremonies: () => axios.get(`${API_URL}/coach/ceremonies`),
+  dismissCoachCeremony: (data) => axios.post(`${API_URL}/coach/ceremonies/dismiss`, data),
 };

@@ -46,7 +46,9 @@ export function createApp() {
     app.use(cors());
     app.use(bodyParser.json({ charset: 'utf-8' }));
     app.use((req, res, next) => {
-        res.set('Content-Type', 'application/json; charset=utf-8');
+        if (req.path.startsWith('/api')) {
+            res.set('Content-Type', 'application/json; charset=utf-8');
+        }
         next();
     });
     app.use(requestLogger); // Log all requests
@@ -101,6 +103,15 @@ export function createApp() {
         registerCoachChatRoutes(app, {
             readJson, writeJson, getDbManager, generateId, getCurrentWeek,
             readCalendarBlocks, createCalendarBlock, updateCalendarBlock, deleteCalendarBlock,
+        });
+    }
+
+    // Serve static frontend in production
+    if (process.env.NODE_ENV === 'production') {
+        const distPath = path.join(__dirname, '..', 'dist');
+        app.use(express.static(distPath));
+        app.get('*', (req, res) => {
+            res.sendFile(path.join(distPath, 'index.html'));
         });
     }
 

@@ -457,6 +457,38 @@ export const LLM_MUTATION_TOOLS = [
     {
         type: 'function',
         function: {
+            name: 'end_of_day_closure',
+            description: 'Ceremonia de cierre diario: revisa completadas, mueve pendientes a mañana, registra patrón de postergación, sugiere foco. Reduce cierre disperso a <2min.',
+            parameters: {
+                type: 'object',
+                properties: {},
+                required: [],
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'quarterly_okr_setup',
+            description: 'Crea objetivo trimestral + KRs + proyecto alineado en 1 paso. Reduce 4+ operaciones manuales a 1 confirmación.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    area: { type: 'string', description: 'Área de vida (trabajo, salud, familia, etc)' },
+                    period: { type: 'string', enum: ['quarterly', 'monthly', 'yearly'], description: 'Periodo del objetivo' },
+                    goals: {
+                        type: 'array',
+                        items: { type: 'string' },
+                        description: 'Metas específicas (1-3, cada una se convierte en un Key Result)',
+                    },
+                },
+                required: ['area', 'goals'],
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
             name: 'create_task',
             description: 'Create a task (simple or project).',
             parameters: {
@@ -917,11 +949,13 @@ Core Rules (Fase 10.2):
 9. For updates: use taskId/projectId to identify the target, use taskTitle/projectTitle only for lookup, and use title for the new name
 10. If user mentions an area (e.g., salud, familia), set areaId/category accordingly; do not block on work/personal
 11. When user wants to learn something new or start a course, use create_learning_structure tool. Ask for: skill name, period, number of modules (if course), and module names if known. Available templates: aprender:curso (structured course with modules), aprender:skill (self-directed learning)
-12. Use compound tools (Fase 10.4) to reduce friction:
+12. Use compound tools to reduce friction:
    - smart_process_inbox: when user wants to process inbox AND link to objective AND schedule in one step
    - plan_and_schedule_week: when user asks to plan their week (use Decision Engine v2 ranking)
    - batch_reprioritize: when overload detected and user wants one-click redistribution
    - breakdown_milestone: when user finds a milestone too large and wants to split it into subtasks
+   - end_of_day_closure: when user wants to close their day (reviews completed, moves pending to tomorrow, registers postponement pattern, suggests focus)
+   - quarterly_okr_setup: when user wants to create a quarterly objective with KRs and aligned project in one step
 
 When suggesting mutations:
 - Explain impact (hours used, capacity remaining, deadlines affected)

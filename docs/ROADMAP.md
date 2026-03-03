@@ -588,48 +588,212 @@ Un coach de productividad que no solo te muestra tareas, sino que **planifica tu
 **Objetivo**: Que la experiencia principal sea de asistente, no chat soporte.
 **Indicaciones Claude**: `docs/qa/CLAUDE-FASE10_5-INSTRUCTIONS.md`
 
-**Tareas - Proactividad Inteligente**:
-- [ ] Morning brief, midday correction y weekly review con triggers por riesgo real
-- [ ] Frecuencia adaptativa basica segun aceptacion/rechazo
-- [ ] Panel coach-first: riesgos, plan recomendado, foco del dia, trade-offs
-- [ ] Acciones por recomendacion: `Aplicar`, `Posponer`, `No aplica`, `Explicame`
+##### Fase 10.5A: Proactividad + Ceremonias ✅
 
-**Tareas - Skills Compuestas (Ceremonias)**:
-- [ ] `end_of_day_closure`: marca completas/incompletas → mueve pendientes a mañana → registra patrón → sugiere foco
-- [ ] `quarterly_okr_setup`: template para crear objetivo + KRs + proyectos alineados en un paso (como `create_learning_structure`)
-
-**Entregables**:
-- Vista Coach v2 en dashboard
-- Sistema de triggers anti-spam
-- `web/server/helpers/llm-agent-mutation-tools.js` - 2 skills adicionales (closure + okr_setup)
-- `web/server/helpers/content-templates.js` - Template OKR trimestral
-
-**Criterio de salida**:
-- [ ] El usuario puede operar semana completa desde recomendaciones, sin depender de escribir comandos
-- [ ] Ceremonia diaria de cierre en <2min con patrón registrado
-- [ ] Setup trimestral en 1 confirmación
-
-#### **Fase 10.6: Calidad y Mejora Continua (Semana 6)**
-
-**Objetivo**: Medir impacto real y cerrar ciclo de aprendizaje.
+**Status**: COMPLETADA (2026-02-16)
 
 **Tareas**:
-- [ ] Metricas: acceptance rate, adherence semanal, reschedules, progreso de objetivos
-- [ ] Evaluacion con replay simple de semanas previas
-- [ ] Ajuste de reglas/prompts basado en datos
+- [x] Morning brief, midweek check y weekly review con triggers por riesgo real
+- [x] Panel CoachPanel + CoachButton flotante con badge de notificacion
+- [x] Acciones por recomendacion: `Aplicar`, `Posponer`, `No aplica`, `Explicame`
+- [x] Sistema anti-spam en coach_events (max 1 ceremonia por ventana)
+- [x] Banner de ceremonias en "Esta Semana"
+- [x] Migration 012: coach_events extended para ceremony_shown/ceremony_dismissed
 
 **Entregables**:
-- Reporte semanal automatico de calidad del coach
+- `web/server/helpers/coach-ceremonies.js` (430 L) - Sistema de ceremonias risk-based
+- `web/src/components/Coach/CoachPanel.jsx` (260 L) - Modal de ceremonias
+- `web/src/components/Coach/CoachButton.jsx` (60 L) - Boton flotante con badge
+- `web/server/db/migrations/012_coach_events_ceremony_types.sql`
+- Endpoints: `GET /api/coach/ceremonies`, `POST /api/coach/ceremonies/dismiss`
+
+##### Fase 10.5B: Objetivos Integrados al Flujo ✅
+
+**Status**: COMPLETADA (2026-02-16)
+**Problema resuelto**: Los objetivos/KRs ahora están integrados al flujo diario — badges informativos, prompt automático al completar tareas, sección de riesgo visible, coach actionable.
+
+**Tareas**:
+- [x] Badges informativos de KR en vistas diarias (nombre, progreso%, color por riesgo)
+- [x] Seccion "KRs en riesgo" en Esta Semana con tareas vinculadas
+- [x] Prompt de progreso KR al completar tarea vinculada (cerrar loop tarea→KR)
+- [x] Coach actionable para KRs en riesgo (sugerir tareas, no solo detectar)
+
+**Entregables**:
+- ✅ `web/src/components/shared/KrBadge.jsx` (30 L) - Badge informativo con progreso%
+- ✅ `web/src/components/shared/KrProgressPrompt.jsx` (90 L) - Mini-modal glassmorphism
+- ✅ `web/src/hooks/useKrLookup.js` (45 L) - Hook para lookup de KRs con progreso calculado
+- ✅ `web/src/components/Dashboard/ThisWeekView.jsx` (+80 L) - Badges ricos + sección KR risk
+- ✅ `web/src/components/Dashboard/TodayView.jsx` (+30 L) - Badges ricos
+- ✅ `web/src/components/layout/MainViewRouter.jsx` (+10 L) - Integración useKrLookup
+- ✅ `web/src/App.jsx` (+15 L) - Estado krPrompt + callback onKrPrompt
+- ✅ `web/src/hooks/useTaskHandlers.js` (+10 L) - Captura linkedKr del toggle
+- ✅ `web/server/routes/tasks-routes.js` (+15 L) - Toggle devuelve linkedKr al completar
+- ✅ `web/server/helpers/coach-rules-engine.js` (+20 L) - checkKrRisks enriquecido + review_kr actionable
+- ✅ `web/src/components/Dashboard/CoachView.jsx` (+5 L) - review_kr en canApply
+
+**Criterio de salida**:
+- [x] Badges de KR muestran nombre, progreso% y color de riesgo en vistas diarias
+- [x] Completar tarea vinculada a KR muestra prompt de actualización automático
+- [x] KRs en riesgo visibles en Esta Semana con tareas asociadas
+- [x] Coach puede ejecutar acciones sobre KRs en riesgo (no solo detectar)
+
+##### Fase 10.5C: Skills Compuestas de Ceremonias ✅
+
+**Status**: COMPLETADA (2026-02-16)
+
+**Tareas**:
+- [x] `end_of_day_closure`: marca completas/incompletas → mueve pendientes a mañana → registra patrón → sugiere foco
+- [x] `quarterly_okr_setup`: template para crear objetivo + KRs + proyectos alineados en un paso
+- [x] Frecuencia adaptativa básica según aceptación/rechazo (3+ dismissals = reduce, 3+ accepts = restore)
+
+**Entregables**:
+- ✅ `web/server/helpers/llm-agent-mutation-tools.js` (+180 L) - preview + execute para ambas skills
+- ✅ `web/server/helpers/llm-agent-orchestrator.js` (+30 L) - 2 tool definitions + system prompt rules
+- ✅ `web/server/helpers/coach-ceremonies.js` (+50 L) - shouldSkipAdaptive() + tracking en dismissCeremony
+
+**Criterio de salida (Fase 10.5 completa)**:
+- [x] El usuario puede operar semana completa desde recomendaciones, sin depender de escribir comandos
+- [x] Completar tarea vinculada a KR ofrece actualizar progreso en 1 click
+- [x] KRs en riesgo visibles en vista semanal con tareas asociadas
+- [x] Ceremonia diaria de cierre en <2min con patrón registrado
+- [x] Setup trimestral en 1 confirmación
+
+#### **Fase 10.6: Calidad, Mejora Continua y Coach Proactivo v2**
+
+**Objetivo**: Medir impacto real, cerrar ciclo de aprendizaje y elevar la proactividad del coach al nivel de una sesión guiada real.
+
+**Origen parcial**: Sesión de coaching 2026-02-17 — gaps identificados entre el chat de la app y una sesión real de coaching.
+
+**Tareas — Métricas y calidad (existentes)**:
+- [ ] Métricas: acceptance rate, adherence semanal, reschedules, progreso de objetivos
+- [ ] Evaluación con replay simple de semanas previas
+- [ ] Ajuste de reglas/prompts basado en datos
+- [ ] Reporte semanal automático de calidad del coach
+- [ ] Vista "Actividad" en UI (pendiente de Fase 10.3B)
+
+**Tareas — Cierre de loop al planear el día (nuevo)**:
+- [ ] Al terminar una sesión de planificación diaria, el coach verifica que cada tarea acordada esté capturada en la app
+- [ ] Si detecta tareas mencionadas en la conversación pero no creadas, las propone automáticamente
+- [ ] Mensaje de cierre: "Esto es lo que quedó comprometido para hoy — ¿falta algo?"
+
+**Tareas — Detección de pilares sin cobertura semanal (nuevo)**:
+- [ ] El coach detecta si alguno de los 3 pilares del usuario (YouTube, Curso, Clientes) no tiene ninguna tarea comprometida esta semana
+- [ ] Si falta cobertura, lo menciona proactivamente: "No veo nada comprometido para YouTube esta semana — ¿es intencional?"
+- [ ] Los pilares son configurables por usuario (guardados en coach_memory)
+- [ ] Se evalúa al inicio de semana (morning brief del lunes) y al planear el día
+
+**Tareas — Confirmaciones implícitas para acciones simples (nuevo)**:
+- [ ] Definir categorías de acciones "seguras" que no requieren preview + confirmación:
+  - Crear tarea simple (tipo simple, sin fecha, sin KR)
+  - Marcar tarea como completada
+  - Agregar nota o descripción
+- [ ] Acciones complejas siguen requiriendo confirmación:
+  - Crear proyecto con milestones
+  - Commit milestone a esta semana
+  - Reprioritizar o redistribuir carga
+- [ ] Feature flag: `FF_COACH_IMPLICIT_CONFIRM` (default: false para no romper comportamiento actual)
+
+**Tareas — Memoria de sesión mejorada (nuevo)**:
+- [ ] No limpiar contexto de conversación al confirmar una acción — mantener hilo completo
+- [ ] El coach recuerda lo dicho en la sesión actual (ej: "tienes gripa", "no grabarás esta semana")
+- [ ] Al retomar conversación después de >30min, hacer resumen breve: "Retomando donde quedamos..."
+- [ ] TTL de pending actions: extender de 5min a 30min
+
+**Entregables**:
+- `web/server/helpers/coach-loop-validator.js` — verifica cobertura de pilares y cierre de loop
+- `web/server/helpers/conversation-state-manager.js` — extender para mantener contexto entre acciones
+- `web/server/routes/coach-chat-routes.js` — confirmaciones implícitas + TTL extendido
+- `web/server/helpers/coach-memory.js` — guardar pilares del usuario
+- Reporte semanal automático de calidad del coach
 - Checklist QA de coaching (no solo CRUD)
 
 **Criterio de salida**:
+- [ ] El coach detecta y menciona pilares sin cobertura antes de que el usuario lo note
+- [ ] Al finalizar planificación del día, confirma que todo quedó en la app
+- [ ] Crear una tarea simple desde el chat no requiere confirmación explícita
+- [ ] El contexto de sesión se mantiene a través de múltiples acciones confirmadas
 - [ ] Tendencia de mejora en adherencia y menor sobrecarga durante 4 semanas
 
 **Nota (fuera de Fase 10)**:
 - Auto-mode sin confirmacion y tuning avanzado por experimentacion pasan a Fase 11+.
 
 ---
-### **Fase 11: QA Final y Producción Personal** ✅
+
+#### **Fase 12: Vista Clientes (Sprint A del Coaching)**
+
+**Origen**: Sesión de coaching 2026-02-16 — Gap #1: "16 clientes mezclados con proyectos genéricos"
+**Objetivo**: Gestión dedicada de clientes con priorización y alertas de actividad.
+
+**Tareas**:
+- [ ] Entidad `client` en DB (nombre, prioridad, última actividad, notas, contacto)
+- [ ] Migration SQLite para tabla `clients` con relación a tasks/projects
+- [ ] Vista "Clientes" en sidebar con listado y filtro Top 5
+- [ ] Dashboard por cliente: tareas activas, última actualización, entregables pendientes
+- [ ] Alerta "Cliente sin actividad >7 días"
+- [ ] Vincular proyectos/tareas existentes a clientes
+- [ ] API CRUD: GET/POST/PATCH/DELETE `/api/clients`
+
+**Criterio de salida**:
+- [ ] Vista dedicada "Clientes" separada de "Proyectos"
+- [ ] Filtro rápido Top 5 vs otros
+- [ ] Alerta visual cuando un cliente lleva >7 días sin actividad
+- [ ] Cada proyecto puede vincularse a un cliente
+
+---
+
+#### **Fase 13: Rutinas Recurrentes (Sprint C del Coaching)**
+
+**Origen**: Sesión de coaching 2026-02-16 — Gap #4: "GYM 3-4x/semana, leer 30min/día — todo manual"
+**Objetivo**: Tareas recurrentes con tracking de consistencia.
+
+**Tareas**:
+- [ ] Campo `recurrence` en schema de tareas (`daily`, `weekly`, `custom`, días específicos)
+- [ ] Migration SQLite para campos de recurrencia
+- [ ] Lógica de expansión: auto-crear instancias al inicio de semana/día
+- [ ] Checkbox diario para rutinas (sin duplicar tarea, solo marcar día)
+- [ ] Vista de consistencia: "2/4 días GYM esta semana" con streak
+- [ ] API: crear tarea recurrente, obtener instancias del día/semana
+- [ ] Integración con capacity: rutinas reservan tiempo fijo
+
+**Criterio de salida**:
+- [ ] Crear rutina "GYM lunes/miércoles/viernes" → aparece automáticamente esos días
+- [ ] Vista de consistencia muestra adherencia semanal por rutina
+- [ ] Rutinas no cuentan como "tareas nuevas" en capacity (son tiempo reservado)
+
+---
+
+#### **Fase 14: Time Blocking en Vista Diaria (Sprint C+ del Coaching)**
+
+**Origen**: Sesión de coaching 2026-02-16 — Gap #3: "Necesitas bloques horarios, no listas"
+**Objetivo**: Integrar time blocking en la vista "Próximo" (Hoy) para planear el día por bloques.
+
+**Tareas**:
+
+**14A — Nivel de Energía Cognitiva (base)**
+- [ ] Campo `energyLevel` en tareas y milestones (`deep`, `medium`, `light`)
+- [ ] Migración SQLite: agregar columna `energy_level` a tasks
+- [ ] UI: selector de energía al crear/editar tarea (3 iconos: cerebro, manos, hoja)
+- [ ] Coach: al planificar el día, ordena automáticamente deep→mañana, light→tarde
+- [ ] Franjas por defecto: Mañana (8-11:30) = Deep, Mediodía (11:30-2) = Medium, Tarde (2-5) = Light
+
+**14B — Time Blocking Visual**
+- [ ] Integrar CalendarDayView dentro de TodayView (vista combinada: lista + bloques)
+- [ ] Botón "Agendar" por tarea → crea bloque en calendario del día
+- [ ] Vista split: tareas sin agendar (izq) + timeline del día (der)
+- [ ] Drag desde lista de tareas a slot de tiempo
+- [ ] Bloques coloreados por energyLevel (rojo=deep, amarillo=medium, verde=light)
+- [ ] Mostrar rutinas recurrentes como bloques fijos en el día
+
+**Criterio de salida**:
+- [ ] Tareas tienen nivel de energía asignado
+- [ ] Coach sugiere orden diario basado en energía cognitiva + franja horaria
+- [ ] Desde "Próximo" se puede ver y crear bloques horarios del día
+- [ ] Arrastrar tarea a un slot de tiempo la agenda automáticamente
+- [ ] Rutinas aparecen como bloques fijos (no movibles)
+
+---
+
+### **Fase 11: QA Final y Producción Personal**
 
 **Objetivo**: Versión final lista para uso diario continuo
 
@@ -668,16 +832,22 @@ Polish: Fases 9.1, 10, 11 (agente + personalizacion + QA)
 
 ## 📋 Próximos Pasos Inmediatos
 
-1. **Completado**: Fase 10.4 - Motor de Coaching v2 + 4 Skills Compuestas ✅ (2026-02-16)
-   - Decision Engine v2 con ranking y explainability
-   - 4 compound tools: smart_process_inbox, plan_and_schedule_week, batch_reprioritize, breakdown_milestone
-2. **Siguiente**: Fase 10.5 - Proactividad + UX Coach-First + 2 Skills adicionales
-   - `end_of_day_closure`: ceremonia de cierre diaria
-   - `quarterly_okr_setup`: template OKR trimestral
-   - Panel coach-first con recomendaciones y riesgos
-3. **Después**: Fase 10.6 - Métricas de impacto + mejora continua
-   - Acceptance rate, adherence, reschedule ratio
-   - Replay validation y ajuste de reglas
+1. **Completado**: Fase 10.5 - Proactividad + Objetivos + Ceremonias ✅ (2026-02-16)
+   - 10.5A: Ceremonias risk-based (morning brief, midweek, weekly review)
+   - 10.5B: Objetivos integrados al flujo (KR badges, risk section, progress prompt)
+   - 10.5C: 2 compound skills (end_of_day_closure, quarterly_okr_setup) + frecuencia adaptativa
+   - Total compound tools: 6 (smart_process_inbox, plan_and_schedule_week, batch_reprioritize, breakdown_milestone, end_of_day_closure, quarterly_okr_setup)
+2. **Siguiente**: Fase 10.6 - Calidad + Coach Proactivo v2 (2026-02-17 identificado)
+   - Métricas de impacto + mejora continua (existente)
+   - Cierre de loop al planear el día (nuevo — coach verifica que el plan quede en la app)
+   - Detección de pilares sin cobertura semanal (nuevo — YouTube/Curso/Clientes)
+   - Confirmaciones implícitas para acciones simples (nuevo)
+   - Memoria de sesión mejorada: TTL 30min + contexto persistente entre acciones
+3. **Después**: Fases 12-14 (Gaps del coaching 2026-02-16)
+   - Fase 12: Vista Clientes (Top 5, alertas actividad, dashboard por cliente)
+   - Fase 13: Rutinas Recurrentes (auto-crear, consistencia, streaks)
+   - Fase 14: Time Blocking en vista diaria (bloques horarios en Próximo)
+4. **Final**: Fase 11 - QA Final y Producción Personal
 
 ---
 
@@ -694,7 +864,8 @@ Polish: Fases 9.1, 10, 11 (agente + personalizacion + QA)
 | **Normalizacion Areas** | 6.1 | ✅ Completado | Areas transversales + filtros + CRUD + herencia |
 | **Strategic Coach** | 7, 8, 9 | ✅ Completado | OKR + coach proactivo + chat accionable |
 | **Agentic Coach** | 9.1, 10 | En progreso | LLM + memoria + proactividad con guardrails |
-| **Production Ready** | 10, 11 | ⏳ Pendiente | v1.0 completo y probado |
+| **Clientes & Rutinas** | 12, 13, 14 | ⏳ Pendiente | Vista clientes + recurrentes + time blocking diario |
+| **Production Ready** | 11 | ⏳ Pendiente | v1.0 completo y probado |
 
 ---
 
@@ -715,10 +886,9 @@ Polish: Fases 9.1, 10, 11 (agente + personalizacion + QA)
 - Fase 9: ✅ Conversational Assistant (2026-02-14)
 - Fase 9.1: ✅ LLM Agent Layer (2026-02-14)
 
-**Completado**: Fases 0-10.4 (Decision Engine v2 + 4 Compound Skills) ✅
-**Proximo**: Fase 10.5 (Proactividad + UX Coach-First)
-**Tiempo Invertido**: ~38 horas
-**Tiempo Estimado Restante**: ~2-3 días (10.5-10.6 + 11)
+**Completado**: Fases 0-10.5 (6 Compound Skills + Ceremonias + Objetivos Integrados) ✅
+**Proximo**: Fase 10.6 (Métricas) → Fases 12-14 (Clientes, Rutinas, Time Blocking) → Fase 11 (QA)
+**Tiempo Invertido**: ~40 horas
 
 ### Fase 3 Completado (Days 1-3):
 

@@ -1082,6 +1082,147 @@ export async function buildMutationPreview(toolName, args, deps) {
                 requiresConfirmation: true,
             };
         }
+        case 'end_of_day_closure': {
+            const data = await deps.readJson('tasks-data.json');
+            const today = new Date().toISOString().split('T')[0];
+            const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+
+            // Tasks for today: thisWeek + active + (dueDate=today OR no dueDate)
+            const todayPending = data.tasks.filter(t =>
+                t.thisWeek && t.status === 'active' &&
+                (!t.dueDate || t.dueDate <= today)
+            );
+            // Completed today
+            const completedToday = data.tasks.filter(t =>
+                t.status === 'done' && t.completedAt && t.completedAt.startsWith(today)
+            );
+
+            if (todayPending.length === 0 && completedToday.length === 0) {
+                return buildNoAction('No hay tareas de hoy para cerrar. Día limpio.');
+            }
+
+            // Detect postponement pattern by category
+            const categoryCount = {};
+            todayPending.forEach(t => {
+                const cat = t.category || 'sin-area';
+                categoryCount[cat] = (categoryCount[cat] || 0) + 1;
+            });
+            const topPostponed = Object.entries(categoryCount)
+                .sort((a, b) => b[1] - a[1])[0] || null;
+
+            // Suggest focus for tomorrow: highest priority pending or KR-linked
+            const focusTask = todayPending
+                .sort((a, b) => {
+                    if (a.keyResultId && !b.keyResultId) return -1;
+                    if (!a.keyResultId && b.keyResultId) return 1;
+                    const prio = { high: 3, normal: 2, low: 1 };
+                    return (prio[b.priority] || 2) - (prio[a.priority] || 2);
+                })[0] || null;
+
+            const changes = [
+                ...completedToday.map(t => ({ type: 'mark_reviewed', taskId: t.id, title: t.title })),
+                ...todayPending.map(t => ({ type: 'move_to_tomorrow', taskId: t.id, title: t.title, newDate: tomorrow })),
+            ];
+
+            const patternMsg = topPostponed
+                ? `"${topPostponed[0]}" tiene más postergación (${topPostponed[1]} tarea${topPostponed[1] > 1 ? 's' : ''})`
+                : 'Sin patrón detectado';
+
+            return {
+                preview: {
+                    changes,
+                    summary: `Cierre del día ${today}\n` +
+                        `✅ Completadas hoy: ${completedToday.length}\n` +
+                        `⏭️ Pendientes → ${tomorrow}: ${todayPending.length}\n` +
+                        `📊 Patrón: ${patternMsg}\n` +
+                        (focusTask ? `🎯 Foco mañana: "${focusTask.title}"` : ''),
+                    impact: {
+                        tasksCompleted: completedToday.length,
+                        tasksMoved: todayPending.length,
+                    },
+                    reason: 'Cierre estructurado: registra progreso, mueve pendientes a mañana, detecta patrón de postergación.',
+                    payload: {
+                        today,
+                        tomorrow,
+                        pendingIds: todayPending.map(t => t.id),
+                        completedCount: completedToday.length,
+                        pattern: topPostponed ? { area: topPostponed[0], count: topPostponed[1] } : null,
+                        focusTaskId: focusTask?.id || null,
+                    },
+                },
+                requiresConfirmation: true,
+            };
+        }
+        case 'quarterly_okr_setup': {
+            const { area, period, goals } = args || {};
+            if (!area || !goals || !goals.length) {
+                return buildNoAction('Faltan parámetros: area y goals son requeridos.');
+            }
+
+            const now = new Date();
+            const quarter = Math.ceil((now.getMonth() + 1) / 3);
+            const year = now.getFullYear();
+            const periodLabel = period || 'quarterly';
+
+            // Build objective
+            const objectiveId = makeId('obj', deps.generateId);
+            const objective = {
+                id: objectiveId,
+                title: `Q${quarter} ${year} - ${area}`,
+                description: goals.join('; '),
+                areaId: area,
+                period: periodLabel,
+                status: 'active',
+                createdAt: now.toISOString(),
+            };
+
+            // Build KRs (one per goal)
+            const keyResults = goals.slice(0, 3).map((goal) => ({
+                id: makeId('kr', deps.generateId),
+                objectiveId,
+                title: goal,
+                targetValue: 100,
+                currentValue: 0,
+                unit: '%',
+                status: 'on_track',
+                createdAt: now.toISOString(),
+            }));
+
+            // Build aligned project
+            const project = buildTaskPayload({
+                title: `Plan ${area} - ${periodLabel}`,
+                type: 'project',
+                category: area,
+                areaId: area,
+                thisWeek: false,
+                objectiveId,
+                description: `Proyecto alineado a: ${objective.title}`,
+            }, deps);
+
+            const changes = [
+                { type: 'objective_create', id: objectiveId, title: objective.title },
+                ...keyResults.map(kr => ({ type: 'kr_create', id: kr.id, title: kr.title })),
+                { type: 'project_create', id: project.id, title: project.title, linkedTo: objective.title },
+            ];
+
+            return {
+                preview: {
+                    changes,
+                    summary: `Setup trimestral para "${area}"\n` +
+                        `📊 Objetivo: ${objective.title}\n` +
+                        `🎯 KRs: ${keyResults.length} (${keyResults.map(k => k.title).join(', ')})\n` +
+                        `📁 Proyecto alineado: ${project.title}`,
+                    impact: {
+                        objectivesCreated: 1,
+                        keyResultsCreated: keyResults.length,
+                        projectsCreated: 1,
+                    },
+                    reason: 'Template OKR trimestral completo: objetivo + KRs + proyecto alineado en 1 paso.',
+                    payload: { objective, keyResults, project },
+                },
+                requiresConfirmation: true,
+            };
+        }
         default:
             return buildNoAction(`Tool no soportada: ${toolName}`);
     }
@@ -1528,6 +1669,92 @@ export async function executeMutation(toolName, preview, deps) {
                     success: true,
                     message: `${deferred.length} tarea(s) movida(s) a "Algún día".`,
                     deferred,
+                };
+            }
+            case 'end_of_day_closure': {
+                const { pendingIds, tomorrow, pattern, completedCount } = payload;
+                const data = await deps.readJson('tasks-data.json');
+
+                // Move pending tasks to tomorrow
+                let moved = 0;
+                for (const taskId of (pendingIds || [])) {
+                    const task = data.tasks.find(t => t.id === taskId);
+                    if (task) {
+                        task.dueDate = tomorrow;
+                        moved++;
+                    }
+                }
+                await deps.writeJson('tasks-data.json', data);
+
+                // Register pattern + event in DB
+                let db;
+                try { db = await getDb(deps); } catch { db = null; }
+
+                if (db && pattern?.area) {
+                    const memKey = `postpone_pattern_${pattern.area}`;
+                    const existing = db.queryOne('SELECT * FROM coach_memory WHERE key = ?', [memKey]);
+                    if (existing) {
+                        db.exec(
+                            `UPDATE coach_memory SET value = ?, confidence = MIN(1.0, confidence + 0.05), updated_at = datetime('now') WHERE key = ?`,
+                            [JSON.stringify({ area: pattern.area, count: pattern.count, date: tomorrow }), memKey]
+                        );
+                    } else {
+                        const memId = `mem-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+                        db.exec(
+                            `INSERT INTO coach_memory (id, key, value, confidence, updated_at) VALUES (?, ?, ?, ?, datetime('now'))`,
+                            [memId, memKey, JSON.stringify({ area: pattern.area, count: pattern.count, date: tomorrow }), 0.6]
+                        );
+                    }
+                }
+
+                if (db) {
+                    const eventId = `ce-closure-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+                    db.exec(
+                        `INSERT INTO coach_events (id, event_type, rule_id, severity, title, description, created_at) VALUES (?, ?, ?, ?, ?, ?, datetime('now'))`,
+                        [eventId, 'applied', 'daily_closure', 'low', 'Cierre diario ejecutado',
+                         `Completadas: ${completedCount}, Movidas: ${moved}, Patrón: ${pattern?.area || 'ninguno'}`]
+                    );
+                }
+
+                return {
+                    success: true,
+                    message: `Cierre del día completado: ${completedCount} hechas, ${moved} movidas a mañana.` +
+                        (pattern ? ` Patrón: "${pattern.area}" tiende a postergarse.` : ''),
+                    pattern,
+                };
+            }
+            case 'quarterly_okr_setup': {
+                const { objective, keyResults, project } = payload;
+                const db = await getDb(deps);
+
+                // 1. Insert objective
+                db.exec(
+                    `INSERT INTO objectives (id, title, description, area_id, period, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                    [objective.id, objective.title, objective.description || '', objective.areaId, objective.period, objective.status, objective.createdAt]
+                );
+
+                // 2. Insert KRs
+                for (const kr of keyResults) {
+                    db.exec(
+                        `INSERT INTO key_results (id, objective_id, title, target_value, current_value, unit, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                        [kr.id, kr.objectiveId, kr.title, kr.targetValue, kr.currentValue, kr.unit, kr.status, kr.createdAt]
+                    );
+                }
+
+                // 3. Insert project via tasks-data
+                const data = await deps.readJson('tasks-data.json');
+                const exists = data.tasks.some(t => t.id === project.id);
+                if (exists) {
+                    project.id = `${project.id}-${Math.random().toString(36).slice(2, 6)}`;
+                }
+                data.tasks.push(project);
+                await deps.writeJson('tasks-data.json', data);
+
+                return {
+                    success: true,
+                    message: `Setup trimestral creado: "${objective.title}" con ${keyResults.length} KR(s) y proyecto "${project.title}".`,
+                    objective,
+                    keyResults,
                 };
             }
             case 'breakdown_milestone': {

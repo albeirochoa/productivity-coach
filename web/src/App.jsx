@@ -12,10 +12,12 @@ import useCapacity from './hooks/useCapacity';
 
 import Sidebar from './components/Dashboard/Sidebar';
 import ChatBubble from './components/Chat/ChatBubble';
+import CoachButton from './components/Coach/CoachButton';
 import ProjectWizard from './components/ProjectWizard/ProjectWizard';
 import QuickCaptureModal from './components/shared/QuickCaptureModal';
 import EditInboxModal from './components/shared/EditInboxModal';
 import EditTaskModal from './components/shared/EditTaskModal';
+import KrProgressPrompt from './components/shared/KrProgressPrompt';
 import TemplateManager from './components/TemplateManager';
 import AppHeader from './components/layout/AppHeader';
 import MainViewRouter from './components/layout/MainViewRouter';
@@ -36,8 +38,11 @@ const App = () => {
     fetchData,
   } = useAppData();
 
+  // KR prompt state (declared before useTaskHandlers which references setKrPrompt)
+  const [krPrompt, setKrPrompt] = useState(null);
+
   // Handlers
-  const { toggleTask, updateTask } = useTaskHandlers(fetchData);
+  const { toggleTask, updateTask, deleteTask } = useTaskHandlers(fetchData, { onKrPrompt: setKrPrompt });
   const {
     editingInboxItem,
     setEditingInboxItem,
@@ -221,6 +226,7 @@ const App = () => {
           projectTree={projectTree}
           unparentProject={unparentProject}
           setShowProjectWizard={setShowProjectWizard}
+          deleteTask={deleteTask}
         />
       </main>
 
@@ -263,13 +269,25 @@ const App = () => {
       {/* Floating Quick Add Button */}
       <button
         onClick={() => setShowCapture(true)}
-        className="fixed bottom-8 right-8 w-14 h-14 bg-momentum hover:bg-momentum/80 rounded-full shadow-2xl shadow-momentum/40 flex items-center justify-center text-white transition-all hover:scale-110"
+        className="fixed bottom-8 right-28 w-14 h-14 bg-momentum hover:bg-momentum/80 rounded-full shadow-2xl shadow-momentum/40 flex items-center justify-center text-white transition-all hover:scale-110"
       >
         <Plus size={28} />
       </button>
 
       {/* Chat */}
       <ChatBubble onRefresh={fetchData} />
+
+      {/* Coach Ceremonies Panel (Fase 10.5) */}
+      <CoachButton />
+
+      {/* KR Progress Prompt (Fase 10.5B) */}
+      {krPrompt && (
+        <KrProgressPrompt
+          kr={krPrompt}
+          onClose={() => setKrPrompt(null)}
+          onUpdated={fetchData}
+        />
+      )}
     </div>
   );
 };

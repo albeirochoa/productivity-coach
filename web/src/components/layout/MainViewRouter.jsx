@@ -8,6 +8,7 @@ import ProjectsView from '../Dashboard/ProjectsView';
 import AreasView from '../Dashboard/AreasView';
 import ObjectivesView from '../Dashboard/ObjectivesView';
 import CoachView from '../Dashboard/CoachView';
+import useKrLookup from '../../hooks/useKrLookup';
 
 const MainViewRouter = ({
   activeView,
@@ -36,7 +37,10 @@ const MainViewRouter = ({
   projectTree,
   unparentProject,
   setShowProjectWizard,
+  deleteTask,
 }) => {
+  const { krMap } = useKrLookup();
+
   return (
     <div className="flex-1 overflow-y-auto px-8 py-6">
       {capacityError && activeView === 'thisweek' && (
@@ -56,6 +60,7 @@ const MainViewRouter = ({
           onEditItem={editInboxItem}
           onDeleteItem={deleteInboxItem}
           onOpenWizardWithItem={handleOpenWizardWithItem}
+          onShowCapture={() => setShowCapture(true)}
         />
       )}
 
@@ -66,6 +71,9 @@ const MainViewRouter = ({
           onRefresh={fetchData}
           onSectionDrop={(taskId) => handleSectionDrop(taskId, 'hoy')}
           onEditTask={setEditingTask}
+          onDeleteTask={deleteTask}
+          krMap={krMap}
+          onShowCapture={() => setShowCapture(true)}
         />
       )}
 
@@ -83,7 +91,9 @@ const MainViewRouter = ({
           }}
           capacityStatus={capacityStatus}
           onEditTask={setEditingTask}
+          onDeleteTask={deleteTask}
           onSectionDrop={(taskId) => handleSectionDrop(taskId, 'thisweek')}
+          krMap={krMap}
         />
       )}
 
@@ -94,6 +104,8 @@ const MainViewRouter = ({
           onRefresh={fetchData}
           onSectionDrop={(taskId) => handleSectionDrop(taskId, 'someday')}
           onEditTask={setEditingTask}
+          onDeleteTask={deleteTask}
+          onShowCapture={() => setShowCapture(true)}
         />
       )}
 

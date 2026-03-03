@@ -1592,5 +1592,49 @@ export function registerCoachChatRoutes(app, deps) {
             res.status(500).json({ error: error.message });
         }
     });
+
+    // ─── GET /api/coach/ceremonies ──────────────────────────────
+    // Fase 10.5: Get active ceremonies based on risk signals
+
+    app.get('/api/coach/ceremonies', async (req, res) => {
+        try {
+            const { getCeremonies } = await import('../helpers/coach-ceremonies.js');
+            const ceremonies = await getCeremonies(toolDeps);
+
+            return res.json({
+                generatedAt: new Date().toISOString(),
+                count: ceremonies.length,
+                ceremonies,
+            });
+        } catch (error) {
+            logger.error('Ceremonies fetch failed', { error: error.message });
+            res.status(500).json({ error: error.message });
+        }
+    });
+
+    // ─── POST /api/coach/ceremonies/dismiss ─────────────────────
+    // Fase 10.5: Dismiss a ceremony
+
+    app.post('/api/coach/ceremonies/dismiss', async (req, res) => {
+        try {
+            const { dismissCeremony } = await import('../helpers/coach-ceremonies.js');
+            const { ceremonyType, action } = req.body;
+
+            if (!ceremonyType) {
+                return res.status(400).json({ error: 'ceremonyType required' });
+            }
+
+            const db = await getDb();
+            dismissCeremony(db, ceremonyType, action || 'dismissed');
+
+            return res.json({
+                success: true,
+                message: `Ceremony ${ceremonyType} dismissed`,
+            });
+        } catch (error) {
+            logger.error('Ceremony dismiss failed', { error: error.message });
+            res.status(500).json({ error: error.message });
+        }
+    });
 }
 

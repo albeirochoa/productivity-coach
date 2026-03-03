@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Circle, CheckCircle2, Calendar, Archive, GripVertical, Edit2 } from 'lucide-react';
+import { Circle, CheckCircle2, Calendar, Archive, GripVertical, Edit2, Trash2, Plus } from 'lucide-react';
 import AreaFilter from '../shared/AreaFilter';
 import useAreaCategories from '../../hooks/useAreaCategories';
 
-const SomedayView = ({ somedayTasks, onToggleTask, onRefresh, onSectionDrop, onEditTask }) => {
+const SomedayView = ({ somedayTasks, onToggleTask, onRefresh, onSectionDrop, onEditTask, onDeleteTask, onShowCapture }) => {
   const [areaFilter, setAreaFilter] = useState(null);
   const { categories } = useAreaCategories();
 
@@ -34,6 +34,19 @@ const SomedayView = ({ somedayTasks, onToggleTask, onRefresh, onSectionDrop, onE
 
       {/* Area Filter */}
       <AreaFilter selectedArea={areaFilter} onSelectArea={setAreaFilter} />
+
+      {/* Quick Add */}
+      {onShowCapture && (
+        <button
+          onClick={onShowCapture}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed border-white/10 text-gray-400 hover:border-momentum hover:text-momentum hover:bg-white/5 transition-all"
+        >
+          <Plus size={20} />
+          <span className="font-medium">Anadir tarea</span>
+          <div className="flex-1" />
+          <kbd className="px-2 py-1 bg-white/5 rounded text-xs">Q</kbd>
+        </button>
+      )}
 
       {/* Tareas */}
       <div>
@@ -113,15 +126,28 @@ const SomedayView = ({ somedayTasks, onToggleTask, onRefresh, onSectionDrop, onE
                     )}
                   </div>
 
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEditTask(task);
-                    }}
-                    className="opacity-0 group-hover:opacity-100 p-2 hover:bg-white/10 rounded-lg transition-all shrink-0"
-                  >
-                    <Edit2 size={14} className="text-gray-400" />
-                  </button>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditTask(task);
+                      }}
+                      className="p-2 hover:bg-white/10 rounded-lg transition-all"
+                    >
+                      <Edit2 size={14} className="text-gray-400" />
+                    </button>
+                    {onDeleteTask && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm(`¿Eliminar "${task.title}"?`)) onDeleteTask(task.id);
+                        }}
+                        className="p-2 hover:bg-red-500/10 rounded-lg transition-all"
+                      >
+                        <Trash2 size={14} className="text-gray-400 hover:text-red-400" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             ))}

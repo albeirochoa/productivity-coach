@@ -8,7 +8,7 @@ import {
 import { interceptTaskAction, interceptTaskMove } from '../helpers/coach-task-interceptor.js';
 
 export function registerTaskRoutes(app, deps) {
-    const { readJson, writeJson, generateId, getCurrentWeek } = deps;
+    const { readJson, writeJson, generateId, getCurrentWeek, getDbManager } = deps;
 
     // ============================================
     // TASKS API (Sistema Unificado)
@@ -307,7 +307,35 @@ export function registerTaskRoutes(app, deps) {
             }
 
             await writeJson('tasks-data.json', data);
-            res.json(task);
+
+            // If task just completed and has a linked KR, include KR context
+            let linkedKr = null;
+            if (task.status === 'done' && task.keyResultId && getDbManager) {
+                try {
+                    const db = getDbManager();
+                    const kr = db.queryOne(
+                        'SELECT id, title, current_value, target_value, start_value, unit, status FROM key_results WHERE id = ?',
+                        [task.keyResultId]
+                    );
+                    if (kr) {
+                        const range = (kr.target_value || 0) - (kr.start_value || 0);
+                        const progress = range > 0
+                            ? Math.round(((kr.current_value || 0) - (kr.start_value || 0)) / range * 100)
+                            : kr.current_value >= kr.target_value ? 100 : 0;
+                        linkedKr = {
+                            id: kr.id,
+                            title: kr.title,
+                            currentValue: kr.current_value,
+                            targetValue: kr.target_value,
+                            unit: kr.unit || '',
+                            status: kr.status,
+                            progress: Math.max(0, Math.min(100, progress)),
+                        };
+                    }
+                } catch (_e) { /* KR lookup is optional, don't break toggle */ }
+            }
+
+            res.json({ ...task, linkedKr });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }

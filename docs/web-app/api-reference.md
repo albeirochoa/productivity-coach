@@ -1,6 +1,6 @@
 # API Reference
 
-Last updated: 2026-02-13
+Last updated: 2026-02-16  
 Base URL: `http://localhost:3000`
 
 ## Contexto
@@ -8,7 +8,7 @@ Base URL: `http://localhost:3000`
 Backend Express modular con persistencia SQLite via `db-store`.
 No hay autenticacion (uso personal local).
 
-## Endpoints activos (47)
+## Endpoints activos (82)
 
 ### Sistema
 1. `GET /health`
@@ -49,13 +49,14 @@ No hay autenticacion (uso personal local).
 6. `POST /api/projects/:id/sections`
 7. `DELETE /api/projects/:id/sections/:sectionId`
 8. `GET /api/projects/hierarchy`
+9. `POST /api/projects/:id/set-next-milestone`
 
-### Legacy compat
-1. `GET /api/commitments/current`
-2. `PATCH /api/commitments/:id`
-3. `GET /api/projects`
-4. `POST /api/projects`
-5. `PATCH /api/projects/:id/milestones/:milestoneId`
+### Calendar
+1. `GET /api/calendar/blocks`
+2. `POST /api/calendar/blocks`
+3. `PATCH /api/calendar/blocks/:id`
+4. `DELETE /api/calendar/blocks/:id`
+5. `GET /api/calendar/day/:date`
 
 ### Capacity
 1. `GET /api/capacity/config`
@@ -65,21 +66,69 @@ No hay autenticacion (uso personal local).
 5. `POST /api/capacity/validate-commitment`
 6. `POST /api/capacity/auto-redistribute`
 
-### Calendar
-1. `GET /api/calendar/blocks`
-2. `POST /api/calendar/blocks`
-3. `PATCH /api/calendar/blocks/:id`
-4. `DELETE /api/calendar/blocks/:id`
-5. `GET /api/calendar/day/:date`
+### Areas de vida
+1. `GET /api/areas`
+2. `GET /api/areas/:areaId`
+3. `POST /api/areas`
+4. `PATCH /api/areas/:areaId`
+5. `DELETE /api/areas/:areaId`
+6. `GET /api/areas/:areaId/stats`
 
-### Chat
+### Objetivos y Key Results
+1. `GET /api/objectives`
+2. `GET /api/objectives/:objectiveId`
+3. `POST /api/objectives`
+4. `PATCH /api/objectives/:objectiveId`
+5. `DELETE /api/objectives/:objectiveId`
+6. `GET /api/objectives/risk-signals`
+7. `GET /api/key-results`
+8. `POST /api/key-results`
+9. `PATCH /api/key-results/:keyResultId`
+10. `PATCH /api/key-results/:keyResultId/progress`
+11. `DELETE /api/key-results/:keyResultId`
+
+### Coach (rules engine)
+1. `GET /api/coach/recommendations`
+2. `POST /api/coach/apply`
+3. `POST /api/coach/reject`
+4. `GET /api/coach/history`
+
+### Coach Chat (acciones)
+1. `POST /api/coach/chat/message`
+2. `POST /api/coach/chat/confirm`
+3. `GET /api/coach/chat/history`
+
+### Coach LLM / Proactividad / Intervencion
+1. `GET /api/coach/chat/proactive`
+2. `POST /api/coach/chat/style`
+3. `GET /api/coach/chat/style`
+4. `GET /api/coach/diagnosis`
+5. `GET /api/coach/checkin`
+6. `POST /api/coach/checkin/response`
+7. `GET /api/coach/patterns`
+8. `POST /api/coach/patterns/analyze`
+9. `GET /api/activity`
+10. `GET /api/coach/metrics`
+11. `GET /api/coach/metrics/weekly`
+12. `GET /api/coach/ceremonies`
+13. `POST /api/coach/ceremonies/dismiss`
+
+### Chat (legacy)
 1. `POST /api/chat`
+
+### Legacy compat
+1. `GET /api/commitments/current`
+2. `PATCH /api/commitments/:id`
+3. `GET /api/projects`
+4. `POST /api/projects`
+5. `PATCH /api/projects/:id/milestones/:milestoneId`
 
 ## Contratos importantes
 
 1. Las rutas legacy siguen activas para compatibilidad.
 2. `POST /api/tasks/:id/commit-milestone` puede responder `409` por sobrecarga de capacidad.
 3. Los errores retornan `{ "error": "..." }` con HTTP `4xx/5xx`.
+4. Feature flags en backend: `FF_OBJECTIVES_ENABLED`, `FF_COACH_RULES_ENABLED`, `FF_COACH_CHAT_ACTIONS_ENABLED`, `FF_COACH_LLM_AGENT_ENABLED`.
 
 ## Referencias de codigo
 
